@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <title>נץ החמה</title>
+  <style>
+    html, body {
+      margin: 0;
+      height: 100%;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
+      color: #fff;
+      -webkit-user-select: none;
+      user-select: none;
+    }
+    body {
+      background: hsl(120, 70%, 30%);
+      transition: background-color 1s linear;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+      box-sizing: border-box;
+    }
+    #countdown {
+      direction: ltr;
+      font-size: clamp(5rem, 27vw, 16rem);
+      font-weight: 800;
+      font-variant-numeric: tabular-nums;
+      line-height: 1;
+      letter-spacing: -0.03em;
+    }
+    #status {
+      margin-top: 0.75rem;
+      font-size: clamp(1.2rem, 5vw, 2rem);
+      font-weight: 600;
+      min-height: 1.2em;
+    }
+    #times {
+      position: fixed;
+      bottom: calc(1rem + env(safe-area-inset-bottom));
+      left: 0;
+      right: 0;
+      display: flex;
+      justify-content: center;
+      gap: 2rem;
+      font-size: 1rem;
+      opacity: 0.85;
+      font-variant-numeric: tabular-nums;
+    }
+    #times span b { font-weight: 700; direction: ltr; unicode-bidi: isolate; }
+  </style>
+</head>
+<body>
+  <div id="countdown">--:--</div>
+  <div id="status"></div>
+  <div id="times">
+    <span>נץ: <b id="target">--:--:--</b></span>
+    <span>עכשיו: <b id="now">--:--:--</b></span>
+  </div>
+
+  <script>
+    // The Apple Shortcut replaces the token below (including "null") with a string
+    // like "2026-11-15T06:15:15": local Israel time, 24-hour clock.
+    const TARGET = /*__TARGET__*/null;
+
+    const WARNING_SECONDS = 8 * 60; // green until 8 minutes before, then fade to red
+    const el = (id) => document.getElementById(id);
+    const pad = (n) => String(n).padStart(2, '0');
+    const clock = (d) => `${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
+
+    function parseTarget(value) {
+      const m = /^(\d{4})-(\d{2})-(\d{2})T(\d{1,2}):(\d{2}):(\d{2})$/.exec(value || '');
+      if (!m) return null;
+      const [, y, mo, d, h, mi, s] = m.map(Number);
+      return new Date(y, mo - 1, d, h, mi, s);
+    }
+
+    function formatDuration(totalSeconds) {
+      const h = Math.floor(totalSeconds / 3600);
+      const m = Math.floor((totalSeconds % 3600) / 60);
+      const s = totalSeconds % 60;
+      return h > 0 ? `${h}:${pad(m)}:${pad(s)}` : `${pad(m)}:${pad(s)}`;
+    }
+
+    function colorFor(remainingSeconds) {
+      if (remainingSeconds <= 0) return 'hsl(0, 75%, 32%)';
+      const ratio = Math.min(1, remainingSeconds / WARNING_SECONDS);
+      return `hsl(${Math.round(120 * ratio)}, 70%, ${30 + 2 * (1 - ratio)}%)`;
+    }
+
+    const target = parseTarget(TARGET);
+
+    function tick() {
+      const now = new Date();
+      el('now').textContent = clock(now);
+      if (!target) return;
+
+      const remaining = Math.ceil((target.getTime() - now.getTime()) / 1000);
+      if (remaining > 0) {
+        el('countdown').textContent = formatDuration(remaining);
+        el('status').textContent = '';
+      } else {
+        el('countdown').textContent = '+' + formatDuration(-remaining);
+        el('status').textContent = 'אחרי הנץ';
+      }
+      document.body.style.backgroundColor = colorFor(remaining);
+    }
+
+    if (target) {
+      el('target').textContent = clock(target);
+    } else {
+      el('status').textContent = 'אין זמן נץ להיום';
+      document.body.style.backgroundColor = '#333';
+    }
+
+    tick();
+    setInterval(tick, 250);
+
+    // Keep the screen on while the countdown is open (ignored where unsupported).
+    async function keepAwake() {
+      try { if ('wakeLock' in navigator) await navigator.wakeLock.request('screen'); } catch (e) {}
+    }
+    keepAwake();
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'visible') keepAwake();
+    });
+  </script>
+</body>
+</html>

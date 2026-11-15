@@ -1,0 +1,35 @@
+{
+  "appTitle": "Zmanim Countdown",
+  "until": "Until",
+  "controls": {
+    "settings": "Settings",
+    "offset": "offset",
+    "targetZman": "Target Zman",
+    "useCustomTime": "Use custom target time",
+    "customTime": "Custom time",
+    "offsetMinutes": "Offset minutes",
+    "rounding": "Rounding",
+    "roundingOptions": {
+      "none": "Exact seconds",
+      "15s": "15 seconds",
+      "1m": "1 minute"
+    },
+    "latitude": "Latitude",
+    "longitude": "Longitude",
+    "useGps": "Use GPS location",
+    "stopAtZero": "Stop at 00:00",
+    "kioskMode": "Kiosk mode",
+    "calculationMethod": "Calculation method",
+    "gra": "GRA",
+    "mga": "Magen Avraham",
+    "close": "Close"
+  },
+  "zmanim": {
+    "sunrise": "Netz Hachamah",
+    "sunset": "Shkia",
+    "chatzot": "Chatzot",
+    "shma": "Sof Zman Shma",
+    "tfilla": "Sof Zman Tefilla",
+    "custom": "Custom time"
+  }
+}
