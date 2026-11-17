@@ -1,0 +1,46 @@
+{
+  "app": {
+    "title": "Compte à rebours Netz"
+  },
+  "countdown": {
+    "until": "avant le lever du soleil",
+    "after": "après le lever du soleil",
+    "tomorrow": "demain",
+    "target": "Netz",
+    "now": "Maintenant",
+    "noTime": "Pas d'heure de netz dans votre calendrier pour aujourd'hui"
+  },
+  "calendar": {
+    "welcomeTitle": "Chargez votre calendrier",
+    "welcomeText": "Importez le fichier du calendrier (zmanimData.json) une seule fois. L'application le garde et affiche chaque jour le netz visible.",
+    "privacy": "Le fichier reste sur ce téléphone. Rien n'est envoyé.",
+    "import": "Importer le calendrier",
+    "replace": "Remplacer le calendrier",
+    "remove": "Supprimer le calendrier",
+    "removeConfirm": "Supprimer le calendrier de ce téléphone ?",
+    "imported": "Calendrier importé",
+    "range": "du {from} au {to}",
+    "expiresSoon": "Votre calendrier se termine dans {days} jours. Importez le nouveau dès que vous l'avez.",
+    "expired": "Votre calendrier est terminé. Importez le nouveau.",
+    "errors": {
+      "invalidJson": "Ce fichier n'est pas un fichier JSON valide.",
+      "invalidFormat": "Ce fichier n'est pas un fichier de calendrier.",
+      "noSunrise": "Aucune heure de netz visible n'a été trouvée dans ce fichier.",
+      "unknown": "Le fichier n'a pas pu être lu."
+    }
+  },
+  "settings": {
+    "title": "Réglages",
+    "open": "Ouvrir les réglages",
+    "language": "Langue",
+    "display": "Affichage",
+    "blackBackground": "Fond noir",
+    "blackBackgroundHint": "Seul le chiffre change de couleur. Consomme moins de batterie.",
+    "keepAwake": "Garder l'écran allumé",
+    "keepAwakeHint": "Le téléphone ne se verrouille pas tant que le compte à rebours est ouvert.",
+    "keepAwakeUnsupported": "Non disponible sur cet appareil. Mettez iOS à jour ou réglez le verrouillage automatique.",
+    "warningMinutes": "Passer au rouge (minutes avant le netz)",
+    "calendar": "Calendrier",
+    "close": "Fermer"
+  }
+}

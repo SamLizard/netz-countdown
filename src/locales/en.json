@@ -1,35 +1,46 @@
 {
-  "appTitle": "Zmanim Countdown",
-  "until": "Until",
-  "controls": {
-    "settings": "Settings",
-    "offset": "offset",
-    "targetZman": "Target Zman",
-    "useCustomTime": "Use custom target time",
-    "customTime": "Custom time",
-    "offsetMinutes": "Offset minutes",
-    "rounding": "Rounding",
-    "roundingOptions": {
-      "none": "Exact seconds",
-      "15s": "15 seconds",
-      "1m": "1 minute"
-    },
-    "latitude": "Latitude",
-    "longitude": "Longitude",
-    "useGps": "Use GPS location",
-    "stopAtZero": "Stop at 00:00",
-    "kioskMode": "Kiosk mode",
-    "calculationMethod": "Calculation method",
-    "gra": "GRA",
-    "mga": "Magen Avraham",
-    "close": "Close"
+  "app": {
+    "title": "Netz Countdown"
   },
-  "zmanim": {
-    "sunrise": "Netz Hachamah",
-    "sunset": "Shkia",
-    "chatzot": "Chatzot",
-    "shma": "Sof Zman Shma",
-    "tfilla": "Sof Zman Tefilla",
-    "custom": "Custom time"
+  "countdown": {
+    "until": "until sunrise",
+    "after": "after sunrise",
+    "tomorrow": "tomorrow",
+    "target": "Sunrise",
+    "now": "Now",
+    "noTime": "No sunrise time in your calendar for today"
+  },
+  "calendar": {
+    "welcomeTitle": "Load your calendar",
+    "welcomeText": "Import the calendar file (zmanimData.json) once. The app keeps it and shows today's visible sunrise every day.",
+    "privacy": "The file stays on this phone. Nothing is uploaded.",
+    "import": "Import calendar file",
+    "replace": "Replace calendar",
+    "remove": "Remove calendar",
+    "removeConfirm": "Remove the calendar from this phone?",
+    "imported": "Calendar imported",
+    "range": "{from} to {to}",
+    "expiresSoon": "Your calendar ends in {days} days. Import the new one when you get it.",
+    "expired": "Your calendar has ended. Import the new one.",
+    "errors": {
+      "invalidJson": "This file is not a valid JSON file.",
+      "invalidFormat": "This file is not a calendar file.",
+      "noSunrise": "No visible sunrise times were found in this file.",
+      "unknown": "The file could not be read."
+    }
+  },
+  "settings": {
+    "title": "Settings",
+    "open": "Open settings",
+    "language": "Language",
+    "display": "Display",
+    "blackBackground": "Black background",
+    "blackBackgroundHint": "Only the number changes color. Uses less battery.",
+    "keepAwake": "Keep the screen on",
+    "keepAwakeHint": "The phone does not lock while the countdown is open.",
+    "keepAwakeUnsupported": "Not supported on this device. Update iOS or set Auto-Lock manually.",
+    "warningMinutes": "Start turning red (minutes before sunrise)",
+    "calendar": "Calendar",
+    "close": "Close"
   }
 }

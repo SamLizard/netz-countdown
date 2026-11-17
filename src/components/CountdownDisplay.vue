@@ -1,95 +1,92 @@
 <template>
-  <div class="countdown-display user-select-none">
-    <div class="countdown-value">{{ formattedTime }}</div>
-    <div class="countdown-label text-h5 text-secondary mt-2">
-      {{ $t('until') }} {{ $t(label) }}
+  <div class="countdown" :style="{ backgroundColor: background }">
+    <div class="countdown__value" :style="{ color: numberColor }">{{ value }}</div>
+    <div class="countdown__label">
+      {{ $t(late ? 'countdown.after' : 'countdown.until') }}
+      <span v-if="isTomorrow">({{ $t('countdown.tomorrow') }})</span>
     </div>
-    <div v-if="offset !== 0" class="countdown-offset text-caption text-primary">
-      {{ offset > 0 ? '+' : '' }}{{ offset }} {{ $t('controls.offset') }}
+    <div v-if="hebrewDate" class="countdown__hebrew" dir="rtl">{{ hebrewDate }}</div>
+
+    <div class="countdown__times">
+      <span>{{ $t('countdown.target') }} <b>{{ targetClock }}</b></span>
+      <span>{{ $t('countdown.now') }} <b>{{ nowClock }}</b></span>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
 import { computed } from 'vue';
-import type { RoundingMode } from '@/types';
+import { colorFor, formatClock, formatDuration, secondsUntil } from '@/services/countdown';
 
-const props = defineProps({
-  diffSeconds: {
-    type: Number,
-    required: true
-  },
-  label: {
-    type: String,
-    required: true
-  },
-  isKiosk: {
-    type: Boolean,
-    default: false
-  },
-  offset: {
-    type: Number,
-    default: 0
-  },
-  rounding: {
-    type: String as () => RoundingMode,
-    default: 'none'
-  }
-});
+const props = defineProps<{
+  target: Date;
+  now: Date;
+  hebrewDate?: string;
+  warningSeconds: number;
+  blackBackground: boolean;
+}>();
 
-const formattedTime = computed(() => {
-  let seconds = props.diffSeconds;
+const remaining = computed(() => secondsUntil(props.target, props.now));
+const late = computed(() => remaining.value <= 0);
+const value = computed(() => (late.value ? '+' : '') + formatDuration(remaining.value));
 
-  if (props.rounding === '1m') {
-    seconds = Math.ceil(seconds / 60) * 60;
-  } else if (props.rounding === '15s') {
-    seconds = Math.ceil(seconds / 15) * 15;
-  }
+const color = computed(() => colorFor(remaining.value, props.warningSeconds, props.blackBackground));
+const background = computed(() => (props.blackBackground ? '#000' : color.value));
+const numberColor = computed(() => (props.blackBackground ? color.value : '#fff'));
 
-  const hours = Math.floor(seconds / 3600);
-  const minutes = Math.floor((seconds % 3600) / 60);
-  const remainingSeconds = seconds % 60;
-  const pad = (value: number) => String(value).padStart(2, '0');
-
-  if (props.rounding === '1m') {
-    return hours > 0 ? `${hours}:${pad(minutes)}` : `${minutes}m`;
-  }
-
-  if (hours > 0) {
-    return `${hours}:${pad(minutes)}:${pad(remainingSeconds)}`;
-  }
-
-  return `${pad(minutes)}:${pad(remainingSeconds)}`;
-});
+const isTomorrow = computed(() => props.target.getDate() !== props.now.getDate());
+const targetClock = computed(() => formatClock(props.target));
+const nowClock = computed(() => formatClock(props.now));
 </script>
 
 <style scoped>
-.countdown-display {
+.countdown {
+  position: absolute;
+  inset: 0;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  min-height: 100vh;
-  padding: 1rem;
-}
-
-.countdown-value {
-  font-size: clamp(4rem, 22vw, 12rem);
-  font-weight: 900;
-  letter-spacing: -0.05em;
-  line-height: 0.9;
-}
-
-.countdown-label {
-  margin-top: 1rem;
-}
-
-.countdown-offset {
-  margin-top: 0.75rem;
-  opacity: 0.8;
-}
-
-.user-select-none {
+  padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom)
+    env(safe-area-inset-left);
+  transition: background-color 1s linear;
   user-select: none;
+  -webkit-user-select: none;
+}
+
+.countdown__value {
+  direction: ltr;
+  font-size: clamp(5rem, 27vw, 16rem);
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+  letter-spacing: -0.03em;
+  transition: color 1s linear;
+}
+
+.countdown__label {
+  margin-top: 0.75rem;
+  font-size: clamp(1.1rem, 4.5vw, 1.8rem);
+  font-weight: 600;
+  opacity: 0.85;
+}
+
+.countdown__hebrew {
+  margin-top: 0.25rem;
+  font-size: 1rem;
+  opacity: 0.6;
+}
+
+.countdown__times {
+  position: absolute;
+  bottom: calc(1.25rem + env(safe-area-inset-bottom));
+  left: 0;
+  right: 0;
+  display: flex;
+  justify-content: center;
+  gap: 2rem;
+  font-size: 1rem;
+  font-variant-numeric: tabular-nums;
+  opacity: 0.7;
 }
 </style>

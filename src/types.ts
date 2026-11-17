@@ -1,20 +1,33 @@
-export type ZmanKey = 'sunrise' | 'sunset' | 'chatzot' | 'sofZmanShma' | 'sofZmanTfilla';
-export type RoundingMode = 'none' | '15s' | '1m';
+export type AppLocale = 'en' | 'fr';
 
-export interface AppSettings {
-  zmanKey: ZmanKey;
-  offsetMinutes: number;
-  rounding: RoundingMode;
-  latitude: number;
-  longitude: number;
-  theme: 'light' | 'dark';
-  isKiosk: boolean;
-  useCustomTime: boolean;
-  customTime: string;
-  stopAtZero: boolean;
+export interface ZmanimDay {
+  hebrewDate?: string;
+  times: Record<string, string>;
 }
 
-export type LocationCoords = {
-  lat: number;
-  lng: number;
-};
+export interface ZmanimSource {
+  firstDate?: string;
+  lastDate?: string;
+  days?: number;
+  generatedAt?: string;
+}
+
+/** Shape of the calendar JSON produced by the Apple Shortcut from the PDF. */
+export interface ZmanimData {
+  schemaVersion: number;
+  source?: ZmanimSource;
+  days: Record<string, ZmanimDay>;
+}
+
+export interface StoredCalendar {
+  fileName: string;
+  importedAt: string;
+  firstDate: string;
+  lastDate: string;
+  data: ZmanimData;
+}
+
+export interface CountdownTarget {
+  date: Date;
+  hebrewDate?: string;
+}

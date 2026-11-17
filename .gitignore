@@ -28,3 +28,7 @@ coverage
 *.sw?
 
 *.tsbuildinfo
+
+# Private community calendar data, never publish
+zmanimData.json
+*.pdf
