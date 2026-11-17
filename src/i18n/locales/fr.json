@@ -1,4 +1,5 @@
 {
+  "language": "Français",
   "app": {
     "title": "Compte à rebours Netz"
   },
@@ -32,7 +33,6 @@
   "settings": {
     "title": "Réglages",
     "open": "Ouvrir les réglages",
-    "language": "Langue",
     "display": "Affichage",
     "blackBackground": "Fond noir",
     "blackBackgroundHint": "Seul le chiffre change de couleur. Consomme moins de batterie.",

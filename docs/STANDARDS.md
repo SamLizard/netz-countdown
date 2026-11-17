@@ -18,8 +18,8 @@
 | `src/stores` | Pinia stores (state + persistence) |
 | `src/services` | Pure TypeScript logic, no Vue imports (parsing, time math, colors) |
 | `src/composables` | Reusable Vue logic with lifecycle (`useNow`, `useWakeLock`) |
-| `src/locales` | One JSON file per language, same keys in every file |
-| `src/plugins` | Vuetify, i18n and other app-level setup |
+| `src/i18n` | vue-i18n setup (`index.ts`: `LOCALES`, `RTL_LOCALES`) and `locales/<code>.json`, same keys in every file |
+| `src/plugins` | Vuetify and other app-level setup |
 | `docs` | Project documentation, including this file |
 | `shortcut` | The older Apple Shortcut version, kept for reference |
 
@@ -34,7 +34,9 @@
 
 - No user-facing text in templates or scripts. Every string goes through `t()` / `$t()`.
 - Add every new key to **all** locale files (`en.json`, `fr.json`) in the same change.
-- Keys are grouped by feature (`countdown.*`, `settings.*`, `calendar.*`).
+- Keys are grouped by feature (`countdown.*`, `settings.*`, `calendar.*`). The top-level `language` key is each language's own name, used by `LanguageSelection.vue`.
+- Change the language only through the settings store (`settings.locale`); it updates vue-i18n, Vuetify, `<html lang>` and `dir`. Never call `useI18n()` outside a component's `setup`.
+- Use the shared `LanguageSelection.vue` component (with flags in `public/flags`) to pick the language; do not build a new selector.
 
 ## Data and privacy
 

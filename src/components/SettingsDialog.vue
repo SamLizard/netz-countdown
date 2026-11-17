@@ -8,11 +8,7 @@
       </v-card-title>
 
       <v-card-text>
-        <div class="text-subtitle-2 mb-2">{{ $t('settings.language') }}</div>
-        <v-btn-toggle v-model="settings.locale" mandatory divided variant="outlined" class="mb-6">
-          <v-btn value="en">English</v-btn>
-          <v-btn value="fr">Français</v-btn>
-        </v-btn-toggle>
+        <LanguageSelection class="mb-6" />
 
         <div class="text-subtitle-2">{{ $t('settings.display') }}</div>
         <v-switch
@@ -55,6 +51,7 @@
 import { mdiClose } from '@mdi/js';
 import { useSettingsStore } from '@/stores/settings';
 import CalendarSection from './CalendarSection.vue';
+import LanguageSelection from './LanguageSelection.vue';
 
 defineProps<{ wakeLockSupported: boolean }>();
 const open = defineModel<boolean>({ required: true });

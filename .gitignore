@@ -32,3 +32,6 @@ coverage
 # Private community calendar data, never publish
 zmanimData.json
 *.pdf
+
+# Previous version of the app, kept locally only
+_old-app/

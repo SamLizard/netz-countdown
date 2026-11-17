@@ -1,4 +1,5 @@
 {
+  "language": "English",
   "app": {
     "title": "Netz Countdown"
   },
@@ -32,7 +33,6 @@
   "settings": {
     "title": "Settings",
     "open": "Open settings",
-    "language": "Language",
     "display": "Display",
     "blackBackground": "Black background",
     "blackBackgroundHint": "Only the number changes color. Uses less battery.",

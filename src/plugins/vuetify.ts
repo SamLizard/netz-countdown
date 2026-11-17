@@ -2,10 +2,11 @@ import { createVuetify } from 'vuetify';
 import { aliases, mdi } from 'vuetify/iconsets/mdi-svg';
 import { createVueI18nAdapter } from 'vuetify/locale/adapters/vue-i18n';
 import { useI18n } from 'vue-i18n';
-import i18n from './i18n';
+import { i18n, RTL_LOCALES } from '@/i18n';
 
 export default createVuetify({
   locale: {
+    rtl: RTL_LOCALES,
     adapter: createVueI18nAdapter({ i18n, useI18n })
   },
   icons: {

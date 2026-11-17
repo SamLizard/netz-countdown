@@ -8,13 +8,15 @@ import { VitePWA } from 'vite-plugin-pwa';
 // GitHub Pages serves the app from https://<user>.github.io/<repo>/
 const BASE = '/netz-countdown/';
 
-export default defineConfig(({ command }) => ({
-  base: command === 'build' ? BASE : '/',
+// Same base for dev, build and preview, so local tests use the same URLs as GitHub Pages.
+export default defineConfig(() => ({
+  base: BASE,
   plugins: [
     vue(),
     vuetify({ autoImport: true }),
     vueI18n({
-      include: [fileURLToPath(new URL('./src/locales/**', import.meta.url))]
+      include: [fileURLToPath(new URL('./src/i18n/locales/**', import.meta.url))],
+      strictMessage: false
     }),
     VitePWA({
       registerType: 'autoUpdate',
