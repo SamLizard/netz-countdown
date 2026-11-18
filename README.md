@@ -26,6 +26,7 @@ See [docs/STANDARDS.md](docs/STANDARDS.md).
 npm install
 npm run dev        # http://localhost:4173
 npm run build
+npm run host       # after building, open the printed Network URL on a phone on the same Wi-Fi
 npm run deploy     # build + publish dist to the gh-pages branch
 ```
 
