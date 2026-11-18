@@ -4,6 +4,7 @@
     "title": "Compte à rebours Netz"
   },
   "countdown": {
+    "notices": "Alertes du calendrier",
     "until": "avant le lever du soleil",
     "after": "après le lever du soleil",
     "tomorrow": "demain",

@@ -1,4 +1,5 @@
 import { computed, ref } from 'vue';
+import { useSettingsStore } from '@/stores/settings';
 import { useInstallPrompt } from './useInstallPrompt';
 
 const persisted = ref<boolean | null>(null);
@@ -29,4 +30,10 @@ export function useStorageStatus() {
   const isKnown = computed(() => isStandalone.value || persisted.value !== null);
 
   return { isSafe, isKnown, isStandalone, recheck: check };
+}
+
+export function useShowStorageNotice() {
+  const settings = useSettingsStore();
+  const { isSafe, isKnown } = useStorageStatus();
+  return computed(() => isKnown.value && !isSafe.value && !settings.storageNoticeDismissed);
 }

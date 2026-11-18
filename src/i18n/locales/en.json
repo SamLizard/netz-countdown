@@ -4,6 +4,7 @@
     "title": "Netz Countdown"
   },
   "countdown": {
+    "notices": "Calendar notices",
     "until": "until sunrise",
     "after": "after sunrise",
     "tomorrow": "tomorrow",

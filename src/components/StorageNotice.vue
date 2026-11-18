@@ -21,15 +21,13 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from 'vue';
+import { ref } from 'vue';
 import { mdiCellphoneArrowDown } from '@mdi/js';
 import { useSettingsStore } from '@/stores/settings';
-import { useStorageStatus } from '@/composables/useStorageStatus';
+import { useShowStorageNotice } from '@/composables/useStorageStatus';
 import InstallGuideDialog from './InstallGuideDialog.vue';
 
 const settings = useSettingsStore();
-const { isSafe, isKnown } = useStorageStatus();
 const guideOpen = ref(false);
-
-const visible = computed(() => isKnown.value && !isSafe.value && !settings.storageNoticeDismissed);
+const visible = useShowStorageNotice();
 </script>

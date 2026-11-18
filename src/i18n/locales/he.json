@@ -4,6 +4,7 @@
     "title": "ספירה לאחור לנץ"
   },
   "countdown": {
+    "notices": "התראות לוח השנה",
     "until": "עד הנץ",
     "after": "אחרי הנץ",
     "tomorrow": "מחר",

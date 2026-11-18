@@ -1,29 +1,36 @@
 <template>
   <div class="countdown" :style="{ backgroundColor: background, '--countdown-text': textColor }">
     <div class="countdown__main">
-      <div
-        class="countdown__value"
-        :class="{ 'countdown__value--far': hidden, 'countdown__value--peek': peeking }"
-        :style="{ color: numberColor, '--value-width': Math.max(3, value.length * 0.66) }"
-      >
-        {{ value }}
+      <div class="countdown__stage">
+        <div
+          class="countdown__value"
+          :class="{ 'countdown__value--far': hidden, 'countdown__value--peek': peeking }"
+          :style="{ color: numberColor, '--value-width': Math.max(3, value.length * 0.66), '--fitted-width': fittedWidth }"
+        >
+          {{ value }}
+          <span class="countdown__width-probe" aria-hidden="true">
+            <span ref="widthProbe">{{ valueShape }}</span>
+          </span>
+        </div>
       </div>
-      <div class="countdown__label">
-        <template v-if="!label">{{ $t(late ? 'countdown.after' : 'countdown.until') }}</template>
-        <i18n-t v-else :keypath="late ? 'steps.since' : 'steps.until'" tag="span" scope="global">
-          <template #label><bdi dir="auto">{{ label }}</bdi></template>
-        </i18n-t>
-        <span v-if="isTomorrow">({{ $t('countdown.tomorrow') }})</span>
+      <div class="countdown__caption">
+        <div class="countdown__label">
+          <template v-if="!label">{{ $t(late ? 'countdown.after' : 'countdown.until') }}</template>
+          <i18n-t v-else :keypath="late ? 'steps.since' : 'steps.until'" tag="span" scope="global">
+            <template #label><bdi dir="auto">{{ label }}</bdi></template>
+          </i18n-t>
+          <span v-if="isTomorrow">({{ $t('countdown.tomorrow') }})</span>
+        </div>
+        <div v-if="hebrewDate" class="countdown__hebrew" dir="rtl">{{ hebrewDate }}</div>
       </div>
-      <div v-if="hebrewDate" class="countdown__hebrew" dir="rtl">{{ hebrewDate }}</div>
       <slot name="nav" />
     </div>
 
     <div class="countdown__footer">
       <div class="countdown__times">
         <span v-if="label"><bdi dir="auto">{{ label }}</bdi> <b dir="ltr">{{ targetClock }}</b></span>
-        <span v-else>{{ $t('countdown.target') }} <b dir="ltr">{{ targetClock }}</b></span>
-        <span>{{ $t('countdown.now') }} <b dir="ltr">{{ nowClock }}</b></span>
+        <span v-else><span>{{ $t('countdown.target') }}</span> <b dir="ltr">{{ targetClock }}</b></span>
+        <span><span>{{ $t('countdown.now') }}</span> <b dir="ltr">{{ nowClock }}</b></span>
         <span v-if="sunriseClock" class="countdown__extra">
           <bdi dir="auto">{{ sunriseLabel || $t('countdown.target') }}</bdi> <b dir="ltr">{{ sunriseClock }}</b>
         </span>
@@ -33,7 +40,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue';
+import { computed, onMounted, ref, watch } from 'vue';
 import { colorFor, digitsHidden, formatClock, formatDuration, secondsUntil } from '@/services/countdown';
 
 const props = defineProps<{
@@ -72,6 +79,16 @@ const value = computed(() => {
   if (hidden.value) return '__:__';
   return (late.value ? '+' : '') + formatDuration(remaining.value, props.stepSeconds);
 });
+
+const widthProbe = ref<HTMLElement>();
+const fittedWidth = ref<number>();
+// Tabular digits share a width; replacing them keeps the measurement stable between ticks.
+const valueShape = computed(() => value.value.replace(/\d/g, '0'));
+const measureValue = () => {
+  if (widthProbe.value) fittedWidth.value = widthProbe.value.getBoundingClientRect().width / 100;
+};
+onMounted(measureValue);
+watch(valueShape, measureValue, { flush: 'post' });
 
 const color = computed(() => colorFor(remaining.value, props.warningSeconds, props.blackBackground, props.dimmed));
 const background = computed(() => {
@@ -118,7 +135,13 @@ const sunriseClock = computed(() =>
   container-type: inline-size;
 }
 
+.countdown__stage,
+.countdown__caption {
+  display: contents;
+}
+
 .countdown__value {
+  position: relative;
   direction: ltr;
   font-size: min(calc((100vw - 2rem) / var(--value-width)), 16rem);
   font-size: min(calc(100cqi / var(--value-width)), 32dvh, 16rem);
@@ -127,6 +150,23 @@ const sunriseClock = computed(() =>
   line-height: 1;
   letter-spacing: -0.03em;
   white-space: nowrap;
+}
+
+.countdown__width-probe {
+  position: absolute;
+  inset: 0 auto auto 0;
+  width: 0;
+  height: 0;
+  overflow: hidden;
+  visibility: hidden;
+}
+
+.countdown__width-probe > span {
+  display: block;
+  inline-size: max-content;
+  /* Measure at a display size so fonts with optical sizing use their large glyphs. */
+  font-size: 100px;
+  letter-spacing: -0.03em;
 }
 
 .countdown__value--far {
@@ -182,15 +222,68 @@ const sunriseClock = computed(() =>
   font-size: 0.85rem;
 }
 
-@media (min-width: 30rem) and (max-height: 28rem) and (orientation: landscape) {
+@media (orientation: landscape) {
   .countdown {
+    min-block-size: 0;
+    gap: 0.375rem;
+  }
+
+  .countdown__main {
+    min-block-size: 0;
+    justify-content: flex-start;
+  }
+
+  .countdown__stage {
     display: grid;
-    grid-template-columns: minmax(0, 3fr) minmax(8rem, 1fr);
+    place-items: center;
+    container-type: size;
+    flex: 1;
+    width: 100%;
+  }
+
+  .countdown__value {
+    --digit-line-height: 0.85;
+    font-size: min(calc(99cqi / var(--fitted-width, var(--value-width))), calc(100cqb / var(--digit-line-height)));
+    line-height: var(--digit-line-height);
+  }
+
+  .countdown__caption {
+    display: flex;
+    flex: none;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: baseline;
+    gap: 0 0.75rem;
+    width: 100%;
+  }
+
+  .countdown__label,
+  .countdown__hebrew {
+    margin-top: 0;
+    font-size: 1rem;
   }
 
   .countdown__times {
-    flex-direction: column;
-    gap: 0.5rem;
+    flex-wrap: nowrap;
+    text-align: center;
+  }
+
+  .countdown__times > span {
+    display: flex;
+    align-items: baseline;
+    gap: 0.25rem;
+    min-inline-size: 0;
+  }
+
+  .countdown__times > span > :first-child {
+    min-inline-size: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .countdown__times b {
+    flex: none;
   }
 }
 </style>
