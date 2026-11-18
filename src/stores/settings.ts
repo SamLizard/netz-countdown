@@ -29,7 +29,9 @@ function load(): Partial<SavedSettings> {
 }
 
 function defaultLocale(): LocaleCode {
-  return navigator.language?.toLowerCase().startsWith('fr') ? 'fr' : 'en';
+  const language = navigator.language?.toLowerCase().split('-')[0];
+  if (language === 'iw') return 'he'; // Legacy browser code for Hebrew.
+  return isLocale(language) ? language : 'en';
 }
 
 export function clampFarRefresh(value: unknown): number {

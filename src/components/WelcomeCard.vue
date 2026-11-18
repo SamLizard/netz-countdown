@@ -1,6 +1,6 @@
 <template>
   <div class="welcome">
-    <v-card max-width="440" class="pa-6" rounded="xl">
+    <v-card max-width="440" class="w-100 pa-4 pa-sm-6" rounded="xl">
       <v-card-title class="text-h5 text-wrap px-0">{{ $t('calendar.welcomeTitle') }}</v-card-title>
       <v-card-text class="px-0">
         <StorageNotice class="mb-4" />
@@ -22,11 +22,11 @@ import StorageNotice from './StorageNotice.vue';
 
 <style scoped>
 .welcome {
-  min-height: 100%;
+  flex: 1;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 1.5rem;
-  overflow-y: auto;
+  padding: 0.75rem calc(1rem + env(safe-area-inset-right)) calc(0.75rem + env(safe-area-inset-bottom))
+    calc(1rem + env(safe-area-inset-left));
 }
 </style>

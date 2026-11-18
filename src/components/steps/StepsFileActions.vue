@@ -30,6 +30,7 @@ import type { StepsList } from '@/types';
 import { useStepsStore } from '@/stores/steps';
 import { parseStepsFile, serializeSteps, stepsToText, StepsError, type ParsedLine } from '@/services/stepsParser';
 import { copyText, exportFileName, shareOrDownload } from '@/services/fileShare';
+import StepsImportPreview from './StepsImportPreview.vue';
 
 /** Import a steps file (with preview), export / share it, copy the list as text. Messages go to the parent snackbar. */
 defineProps<{ sunrise: Date | null }>();

@@ -14,12 +14,15 @@
   >
     <template #selection>
       <v-img :src="flag(settings.locale)" width="28" max-width="28" alt="" class="me-2" />
-      <span>{{ $t('language') }}</span>
+      <bdi>{{ $t('language') }}</bdi>
     </template>
     <template #item="{ item, props: itemProps }">
       <v-list-item v-bind="itemProps">
         <template #prepend>
           <v-img :src="flag(item.raw.lang)" width="28" max-width="28" alt="" class="me-3" />
+        </template>
+        <template #title>
+          <bdi :lang="item.raw.lang">{{ item.title }}</bdi>
         </template>
       </v-list-item>
     </template>
@@ -41,9 +44,9 @@ interface LocaleItem {
 const { t } = useI18n();
 const settings = useSettingsStore();
 
-const flag = (code: string) => `${import.meta.env.BASE_URL}flags/${code}.svg`;
+const flag = (code: LocaleCode) => `${import.meta.env.BASE_URL}flags/${code}.svg`;
 
-// Each language is listed in its own name ("English", "Français").
+// Each language is listed in its own name.
 const otherLocales = computed<LocaleItem[]>(() =>
   LOCALES.filter((code) => code !== settings.locale).map((lang) => ({ lang, text: t('language', 1, { locale: lang }) }))
 );

@@ -3,6 +3,7 @@ import {
   formatOffset,
   labelErrors,
   MAX_STEPS,
+  NAME_MAX,
   newStepId,
   normalizeLabel,
   offsetRangeError,
@@ -42,7 +43,12 @@ export class StepsError extends Error {
 export const STEPS_FILE_KIND = 'netz.steps';
 export const PASTE_MAX_CHARS = 5000;
 export const PASTE_MAX_LINES = 50;
-const FILE_MAX_BYTES = 100 * 1024;
+export const MAX_STEPS_INPUT_LENGTH = 100 * 1024;
+
+interface ParsedSteps {
+  name: string;
+  items: ParsedLine[];
+}
 
 // ---------------------------------------------------------------------------------------------
 // Offset expression: [direction] [sign] number [unit] [direction], or a "sunrise" word (= 0).
@@ -110,13 +116,16 @@ export function parseOffset(text: string): OffsetResult | null {
 }
 
 function splitLine(line: string): { label: string; offset: OffsetResult | null } {
+  const lastTab = line.lastIndexOf('\t');
+  if (lastTab >= 0) {
+    const offset = parseOffset(line.slice(lastTab + 1));
+    if (offset) return { label: line.slice(0, lastTab).trim(), offset };
+  }
   const tab = line.indexOf('\t');
   if (tab >= 0) {
     const a = line.slice(0, tab).trim();
     const b = line.slice(tab + 1).trim();
     const offA = parseOffset(a);
-    const offB = parseOffset(b);
-    if (offB) return { label: a, offset: offB };
     if (offA) return { label: b, offset: offA };
     return { label: a, offset: null };
   }
@@ -159,11 +168,17 @@ function markDuplicates(items: ParsedLine[]): ParsedLine[] {
 }
 
 /** One step per line: a name and an offset, in either order, or two tab-separated cells. */
-export function parsePastedText(text: string): ParsedLine[] {
+export function parsePastedText(text: string): ParsedSteps {
+  if (text.length > PASTE_MAX_CHARS) throw new StepsError('tooLarge');
   const items: ParsedLine[] = [];
-  text.slice(0, PASTE_MAX_CHARS).split(/\r\n|\r|\n/).forEach((rawLine, i) => {
+  let name = '';
+  text.split(/\r\n|\r|\n/).forEach((rawLine, i) => {
     const line = cleanLine(rawLine);
-    if (!line || line.startsWith('#')) return;
+    if (!line) return;
+    if (line.startsWith('#') && !line.includes('\t')) {
+      if (!name && !items.length && line.startsWith('# ')) name = line.slice(2).trim().slice(0, NAME_MAX);
+      return;
+    }
     const base = { lineNo: i + 1, raw: rawLine };
     if (items.length >= PASTE_MAX_LINES) {
       items.push({ ...base, error: { code: 'tooMany', params: { max: PASTE_MAX_LINES } } });
@@ -173,15 +188,19 @@ export function parsePastedText(text: string): ParsedLine[] {
     if (offset && 'error' in offset) items.push({ ...base, label, error: offset.error });
     else items.push(checkItem({ ...base, label: label || undefined, offsetSeconds: offset?.seconds }));
   });
-  return markDuplicates(items);
+  return { name, items: markDuplicates(items) };
+}
+
+export function parseStepsInput(text: string): ParsedSteps {
+  return /^\s*\{\s*(?:"|}|$)/.test(text) ? parseStepsFile(text) : parsePastedText(text);
 }
 
 // ---------------------------------------------------------------------------------------------
 // Files
 
 /** Validates a shared steps file. Throws StepsError; per-item problems are returned as item errors. */
-export function parseStepsFile(text: string): { name: string; items: ParsedLine[] } {
-  if (text.length > FILE_MAX_BYTES) throw new StepsError('tooLarge');
+export function parseStepsFile(text: string): ParsedSteps {
+  if (text.length > MAX_STEPS_INPUT_LENGTH) throw new StepsError('tooLarge');
   let raw: unknown;
   try {
     raw = JSON.parse(text);
@@ -201,7 +220,7 @@ export function parseStepsFile(text: string): { name: string; items: ParsedLine[
     const offset = Number.isInteger(item.offsetSeconds) ? (item.offsetSeconds as number) : undefined;
     return checkItem({ lineNo: i + 1, raw: JSON.stringify(value) ?? '', label: label || undefined, offsetSeconds: offset });
   });
-  const name = typeof file.name === 'string' ? cleanLine(file.name).slice(0, 60) : '';
+  const name = typeof file.name === 'string' ? cleanLine(file.name).slice(0, NAME_MAX) : '';
   return { name, items: markDuplicates(items) };
 }
 
@@ -222,7 +241,7 @@ export function stepsToText(list: StepsList): string {
   const lines = sortedSteps(list).map((s) => ({ label: s.label, offsetSeconds: s.offsetSeconds }));
   if (list.sunriseLabel) lines.push({ label: list.sunriseLabel, offsetSeconds: 0 });
   lines.sort((a, b) => a.offsetSeconds - b.offsetSeconds);
-  const body = lines.map((l) => `${l.label} ${formatOffset(l.offsetSeconds, '-')}`);
+  const body = lines.map((l) => `${l.label}\t${formatOffset(l.offsetSeconds, '-')}`);
   return [...(list.name ? [`# ${list.name}`] : []), ...body].join('\n');
 }
 

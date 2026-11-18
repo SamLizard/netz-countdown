@@ -18,14 +18,14 @@
       class="mb-4"
     />
 
-    <v-slider
+    <v-select
       v-model="settings.warningMinutes"
+      :items="warningOptions"
       :label="$t('settings.warningMinutes')"
-      :min="1"
-      :max="30"
-      :step="1"
-      thumb-label
-      color="primary"
+      :hint="$t('settings.warningMinutesHint')"
+      persistent-hint
+      variant="outlined"
+      density="comfortable"
       class="mb-2"
     />
 
@@ -61,10 +61,16 @@
 </template>
 
 <script setup lang="ts">
+import { computed } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { useSettingsStore } from '@/stores/settings';
 import RefreshRateField from './RefreshRateField.vue';
 
 defineProps<{ wakeLockSupported: boolean }>();
 
 const settings = useSettingsStore();
+const { t } = useI18n();
+const warningOptions = computed(() =>
+  Array.from({ length: 30 }, (_, i) => ({ value: i + 1, title: t('settings.warningMinutesOption', { minutes: i + 1 }) }))
+);
 </script>

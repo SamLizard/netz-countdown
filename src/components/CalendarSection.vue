@@ -3,7 +3,7 @@
     <div class="text-subtitle-2 mb-2">{{ $t('settings.calendar') }}</div>
 
     <div v-if="calendar.calendar" class="text-body-2 mb-3">
-      <div class="font-weight-medium">{{ calendar.calendar.fileName }}</div>
+      <div class="font-weight-medium text-break">{{ calendar.calendar.fileName }}</div>
       <div class="text-medium-emphasis">
         {{ $t('calendar.range', { from: formatDate(calendar.calendar.firstDate), to: formatDate(calendar.calendar.lastDate) }) }}
       </div>

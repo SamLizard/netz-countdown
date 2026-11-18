@@ -19,3 +19,20 @@ body {
 *::after {
   box-sizing: border-box;
 }
+
+/* Center Vuetify dialogs inside the usable screen, including landscape cutouts. */
+.v-dialog:not(.v-dialog--fullscreen, .v-bottom-sheet) {
+  padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+}
+
+.v-dialog:not(.v-dialog--fullscreen, .v-bottom-sheet) > .v-overlay__content {
+  --dialog-gutter: clamp(0.5rem, 3vmin, 1.5rem);
+  margin: var(--dialog-gutter);
+  width: calc(100% - 2 * var(--dialog-gutter));
+  max-height: calc(100% - 2 * var(--dialog-gutter));
+}
+
+.v-dialog .v-card-title {
+  white-space: normal;
+  overflow-wrap: anywhere;
+}

@@ -4,7 +4,7 @@
       <div
         class="countdown__value"
         :class="{ 'countdown__value--far': hidden, 'countdown__value--peek': peeking }"
-        :style="{ color: numberColor }"
+        :style="{ color: numberColor, '--value-width': Math.max(3, value.length * 0.66) }"
       >
         {{ value }}
       </div>
@@ -21,11 +21,11 @@
 
     <div class="countdown__footer">
       <div class="countdown__times">
-        <span v-if="label"><bdi dir="auto">{{ label }}</bdi> <b>{{ targetClock }}</b></span>
-        <span v-else>{{ $t('countdown.target') }} <b>{{ targetClock }}</b></span>
-        <span>{{ $t('countdown.now') }} <b>{{ nowClock }}</b></span>
+        <span v-if="label"><bdi dir="auto">{{ label }}</bdi> <b dir="ltr">{{ targetClock }}</b></span>
+        <span v-else>{{ $t('countdown.target') }} <b dir="ltr">{{ targetClock }}</b></span>
+        <span>{{ $t('countdown.now') }} <b dir="ltr">{{ nowClock }}</b></span>
         <span v-if="sunriseClock" class="countdown__extra">
-          <bdi dir="auto">{{ sunriseLabel || $t('countdown.target') }}</bdi> <b>{{ sunriseClock }}</b>
+          <bdi dir="auto">{{ sunriseLabel || $t('countdown.target') }}</bdi> <b dir="ltr">{{ sunriseClock }}</b>
         </span>
       </div>
     </div>
@@ -84,7 +84,7 @@ const numberColor = computed(() => {
   return props.dimmed ? 'rgba(255, 255, 255, 0.55)' : '#fff';
 });
 /** Labels and small times: dimmer grey when idle. */
-const textColor = computed(() => `rgba(255, 255, 255, ${props.dimmed ? 0.3 : 0.55})`);
+const textColor = computed(() => `rgba(255, 255, 255, ${props.dimmed ? 0.3 : 0.8})`);
 
 const isTomorrow = computed(() => props.target.getDate() !== props.now.getDate());
 const targetClock = computed(() => formatClock(props.target));
@@ -95,15 +95,15 @@ const sunriseClock = computed(() =>
 </script>
 
 <style scoped>
-/* Column layout: the footer is in the flow, so it can never overlap the number on short (landscape) screens. */
 .countdown {
-  position: absolute;
-  inset: 0;
+  flex: 1;
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: calc(3.5rem + env(safe-area-inset-top)) calc(1rem + env(safe-area-inset-right))
-    calc(1.25rem + env(safe-area-inset-bottom)) calc(1rem + env(safe-area-inset-left));
+  gap: 0.75rem;
+  padding: 0.5rem calc(1rem + env(safe-area-inset-right)) calc(0.75rem + env(safe-area-inset-bottom))
+    calc(1rem + env(safe-area-inset-left));
+  touch-action: pan-y pinch-zoom;
   user-select: none;
   -webkit-user-select: none;
 }
@@ -114,17 +114,19 @@ const sunriseClock = computed(() =>
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  min-height: 0;
   width: 100%;
+  container-type: inline-size;
 }
 
 .countdown__value {
   direction: ltr;
-  font-size: clamp(4rem, min(27vw, 38vh), 16rem);
+  font-size: min(calc((100vw - 2rem) / var(--value-width)), 16rem);
+  font-size: min(calc(100cqi / var(--value-width)), 32dvh, 16rem);
   font-weight: 500;
   font-variant-numeric: tabular-nums;
   line-height: 1;
   letter-spacing: -0.03em;
+  white-space: nowrap;
 }
 
 .countdown__value--far {
@@ -136,8 +138,8 @@ const sunriseClock = computed(() =>
 }
 
 .countdown__label {
-  margin-top: 0.75rem;
-  font-size: clamp(1.1rem, 4.5vw, 1.8rem);
+  margin-top: 0.5rem;
+  font-size: clamp(1rem, min(4.5vw, 5dvh), 1.8rem);
   font-weight: 500;
   text-align: center;
   color: var(--countdown-text);
@@ -161,11 +163,34 @@ const sunriseClock = computed(() =>
   justify-content: center;
   align-items: baseline;
   flex-wrap: wrap;
-  gap: 0.5rem 2rem;
+  gap: 0.25rem clamp(0.75rem, 3vw, 2rem);
   font-size: 1rem;
+}
+
+.countdown__label,
+.countdown__hebrew,
+.countdown__times > span {
+  max-inline-size: 100%;
+  overflow-wrap: anywhere;
+}
+
+.countdown__times b {
+  white-space: nowrap;
 }
 
 .countdown__extra {
   font-size: 0.85rem;
+}
+
+@media (min-width: 30rem) and (max-height: 28rem) and (orientation: landscape) {
+  .countdown {
+    display: grid;
+    grid-template-columns: minmax(0, 3fr) minmax(8rem, 1fr);
+  }
+
+  .countdown__times {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
 }
 </style>

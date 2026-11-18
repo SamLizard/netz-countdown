@@ -14,8 +14,8 @@
         <tr v-for="row in preview.rows" :key="row.lineNo">
           <td>{{ row.lineNo }}</td>
           <td><bdi dir="auto">{{ row.label }}</bdi></td>
-          <td class="preview__num">{{ row.offsetSeconds !== undefined ? formatOffset(row.offsetSeconds) : '' }}</td>
-          <td v-if="sunrise" class="preview__num">{{ clockFor(row.offsetSeconds) }}</td>
+          <td class="preview__num"><bdi dir="ltr">{{ row.offsetSeconds !== undefined ? formatOffset(row.offsetSeconds) : '' }}</bdi></td>
+          <td v-if="sunrise" class="preview__num"><bdi dir="ltr">{{ clockFor(row.offsetSeconds) }}</bdi></td>
           <td :class="row.status === 'error' ? 'text-error' : 'text-medium-emphasis'">
             {{ row.error ? stepErrorText(row.error) : $t(STATUS_KEYS[row.status]) }}
           </td>
@@ -86,7 +86,6 @@ function clockFor(offset?: number) {
 }
 
 .preview__num {
-  direction: ltr;
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
 }

@@ -1,5 +1,5 @@
 <template>
-  <v-dialog v-model="open" max-width="520">
+  <v-dialog v-model="open" max-width="520" scrollable>
     <v-card rounded="xl">
       <v-card-title class="text-h6 font-weight-bold text-wrap">{{ $t('install.title') }}</v-card-title>
 

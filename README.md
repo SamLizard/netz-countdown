@@ -12,7 +12,11 @@ Live: https://samlizard.github.io/netz-countdown/
 
 The calendar stays on the phone. Nothing is uploaded, and there is no account.
 
-Settings (gear icon): language (English / French), black background (only the number is colored, saves battery on OLED screens), keep the screen on, and when to start turning red.
+Settings (gear icon): language (English / French / Hebrew), black background (only the number is colored, saves battery on OLED screens), keep the screen on, and how many minutes before sunrise to start turning red.
+
+The app works in portrait and landscape. On short screens, scroll to reach anything that does not fit. If you've added prayer steps, swipe horizontally on the countdown or use the previous/next buttons to preview another step.
+
+Prayer steps are timed relative to visible sunrise from your imported calendar, not a fixed clock time. If sunrise is at 06:30, a step set to 10 minutes before sunrise is at 06:20. Use **Copy as text** to share a list and **Paste a list** to bring it back; Paste also accepts the contents of an exported steps file.
 
 ## For developers
 

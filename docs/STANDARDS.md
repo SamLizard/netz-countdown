@@ -5,7 +5,7 @@
 - Vue 3 with `<script setup lang="ts">` and the Composition API only.
 - Vuetify 3 for UI components. Icons come from `@mdi/js` (SVG, tree-shaken), not the icon font.
 - Pinia for state (setup-store syntax).
-- vue-i18n (Composition mode, `legacy: false`). English is the default and fallback; French is supported.
+- vue-i18n (Composition mode, `legacy: false`). English is the fallback; French and Hebrew are supported. Hebrew uses a right-to-left layout.
 - Vite + `vite-plugin-pwa` for the build and the service worker.
 - TypeScript in `strict` mode. No `any` unless the value comes from untrusted input and is validated right after.
 
@@ -33,7 +33,7 @@
 ## Text and languages
 
 - No user-facing text in templates or scripts. Every string goes through `t()` / `$t()`.
-- Add every new key to **all** locale files (`en.json`, `fr.json`) in the same change.
+- Add every new key to **all** locale files (`en.json`, `fr.json`, `he.json`) in the same change.
 - Keys are grouped by feature (`countdown.*`, `settings.*`, `calendar.*`). The top-level `language` key is each language's own name, used by `LanguageSelection.vue`.
 - Change the language only through the settings store (`settings.locale`); it updates vue-i18n, Vuetify, `<html lang>` and `dir`. Never call `useI18n()` outside a component's `setup`.
 - Use the shared `LanguageSelection.vue` component (with flags in `public/flags`) to pick the language; do not build a new selector.

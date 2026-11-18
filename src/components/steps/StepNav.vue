@@ -1,17 +1,5 @@
 <template>
-  <div class="step-nav" :style="{ color: 'var(--countdown-text)' }">
-    <v-chip
-      v-if="peeking"
-      class="step-nav__live"
-      color="white"
-      variant="outlined"
-      size="small"
-      :prepend-icon="mdiArrowULeftTop"
-      @click="emit('live')"
-    >
-      {{ $t('steps.preview') }} · {{ $t('steps.backToLive') }}
-    </v-chip>
-
+  <div class="step-nav">
     <div class="step-nav__dots" role="img" :aria-label="$t('steps.position', { index: shownIndex + 1, total: labels.length })">
       <span
         v-for="(_, i) in labels"
@@ -21,13 +9,21 @@
       />
     </div>
 
-    <div class="step-nav__sides">
-      <button v-if="prevLabel !== null" type="button" class="step-nav__side" :aria-label="$t('steps.prevStep')" @click="emit('prev')">
-        ‹ <bdi dir="auto">{{ prevLabel }}</bdi>
+    <div class="step-nav__actions">
+      <button v-if="prevLabel !== null" type="button" class="step-nav__side step-nav__prev" :aria-label="$t('steps.prevStep')" @click="emit('prev')">
+        <span class="step-nav__arrow" aria-hidden="true">‹</span> <bdi dir="auto">{{ prevLabel }}</bdi>
       </button>
-      <span v-else />
-      <button v-if="nextLabel !== null" type="button" class="step-nav__side" :aria-label="$t('steps.nextStep')" @click="emit('next')">
-        <bdi dir="auto">{{ nextLabel }}</bdi> ›
+      <v-btn
+        v-if="peeking"
+        class="step-nav__live"
+        variant="outlined"
+        :prepend-icon="mdiArrowULeftTop"
+        @click="emit('live')"
+      >
+        {{ $t('steps.backToLive') }}
+      </v-btn>
+      <button v-if="nextLabel !== null" type="button" class="step-nav__side step-nav__next" :aria-label="$t('steps.nextStep')" @click="emit('next')">
+        <bdi dir="auto">{{ nextLabel }}</bdi> <span class="step-nav__arrow" aria-hidden="true">›</span>
       </button>
     </div>
   </div>
@@ -49,21 +45,21 @@ const nextLabel = computed(() => (props.shownIndex < props.labels.length - 1 ? p
 .step-nav {
   width: 100%;
   max-width: 32rem;
-  margin-top: 1rem;
+  margin-top: 0.5rem;
+  color: var(--countdown-text);
 }
 
 .step-nav__live {
-  position: absolute;
-  top: calc(0.9rem + env(safe-area-inset-top));
-  left: 50%;
-  transform: translateX(-50%);
-  opacity: 0.8;
+  grid-column: 2;
+  min-block-size: 44px;
+  padding-inline: 0.5rem;
 }
 
 .step-nav__dots {
   display: flex;
   justify-content: center;
-  gap: 0.5rem;
+  flex-wrap: wrap;
+  gap: clamp(0.25rem, 1vw, 0.5rem);
 }
 
 .step-nav__dot {
@@ -82,20 +78,44 @@ const nextLabel = computed(() => (props.shownIndex < props.labels.length - 1 ? p
   outline-offset: 2px;
 }
 
-.step-nav__sides {
-  display: flex;
-  justify-content: space-between;
-  gap: 1rem;
-  margin-top: 0.75rem;
+.step-nav__actions {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  align-items: center;
+  gap: 0.25rem;
+  margin-top: 0.25rem;
   font-size: 0.95rem;
 }
 
 .step-nav__side {
+  min-block-size: 44px;
   color: inherit;
-  padding: 0.5rem 0.25rem;
-  max-width: 48%;
+  padding-inline: 0.25rem;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  text-align: start;
+}
+
+.step-nav__next {
+  grid-column: 3;
+  text-align: end;
+}
+
+.step-nav__prev {
+  grid-column: 1;
+}
+
+.step-nav__side:only-child {
+  grid-column: 1 / -1;
+}
+
+.step-nav__arrow {
+  display: inline-block;
+  direction: ltr;
+}
+
+.step-nav:dir(rtl) .step-nav__arrow {
+  transform: scaleX(-1);
 }
 </style>

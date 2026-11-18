@@ -1,8 +1,9 @@
 <template>
-  <v-bottom-sheet v-model="open" inset max-width="560">
-    <v-card rounded="t-xl">
+  <v-bottom-sheet v-model="open" content-class="step-sheet" max-width="560" scrollable>
+    <v-card class="step-sheet__card" rounded="t-xl">
       <v-card-title>{{ $t(isSunrise || step ? 'steps.editTitle' : 'steps.newTitle') }}</v-card-title>
       <v-card-text>
+        <p v-if="isSunrise" class="mb-3">{{ $t('steps.sunriseLocked') }}</p>
         <v-text-field
           v-model="label"
           :label="$t('steps.label')"
@@ -13,16 +14,15 @@
           :maxlength="LABEL_MAX + 10"
           dir="auto"
           variant="outlined"
-          autofocus
           class="mb-2"
           @update:model-value="touched = true"
         />
 
         <template v-if="!isSunrise">
-          <v-btn-toggle v-model="after" mandatory divided variant="outlined" color="primary" class="mb-4 w-100">
-            <v-btn :value="false" class="flex-grow-1">{{ $t('steps.before') }}</v-btn>
-            <v-btn :value="true" class="flex-grow-1">{{ $t('steps.after') }}</v-btn>
-          </v-btn-toggle>
+          <v-radio-group v-model="after" hide-details color="primary" class="mb-3">
+            <v-radio :value="false" :label="$t('steps.before')" />
+            <v-radio :value="true" :label="$t('steps.after')" />
+          </v-radio-group>
 
           <div class="d-flex ga-3">
             <v-text-field
@@ -50,11 +50,13 @@
             />
           </div>
           <div v-if="touched && offsetMessages.length" class="text-caption text-error mt-1">{{ offsetMessages.join(' · ') }}</div>
-          <div v-if="previewClock" class="text-body-2 text-medium-emphasis mt-2">{{ $t('steps.todayAt', { time: previewClock }) }}</div>
+          <i18n-t v-if="previewClock" keypath="steps.todayAt" tag="p" scope="global" class="text-body-2 text-medium-emphasis mt-2">
+            <template #time><bdi dir="ltr">{{ previewClock }}</bdi></template>
+          </i18n-t>
         </template>
       </v-card-text>
 
-      <v-card-actions class="px-4 pb-4">
+      <v-card-actions class="px-4 flex-wrap">
         <v-btn v-if="step && !isSunrise" color="error" variant="text" :prepend-icon="mdiDeleteOutline" @click="emit('delete', step.id)">
           {{ $t('steps.delete') }}
         </v-btn>
@@ -133,3 +135,18 @@ function save() {
   else touched.value = true;
 }
 </script>
+
+<style scoped>
+:global(.v-bottom-sheet > .v-overlay__content.v-bottom-sheet__content.step-sheet) {
+  left: env(safe-area-inset-left);
+  right: env(safe-area-inset-right);
+  width: calc(100% - env(safe-area-inset-left) - env(safe-area-inset-right));
+  max-height: calc(100% - env(safe-area-inset-top) - 0.5rem);
+}
+
+.step-sheet__card > .v-card-actions {
+  flex: none;
+  row-gap: 0.25rem;
+  padding-bottom: calc(0.5rem + env(safe-area-inset-bottom));
+}
+</style>

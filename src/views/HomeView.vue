@@ -1,10 +1,33 @@
 <template>
   <v-main class="home">
-    <WelcomeCard v-if="!calendar.calendar" />
+    <div class="home__screen" :inert="asleep">
+      <header class="home__header">
+        <div v-if="calendar.hasData" class="home__notices">
+          <SleepOverlay v-if="sleep.phase.value === 'warning'" :seconds-left="sleep.warningSecondsLeft.value" />
+          <StorageNotice />
+          <v-alert
+            v-if="calendar.expiresSoon"
+            :type="calendar.coversToday ? 'warning' : 'error'"
+            variant="tonal"
+            density="compact"
+          >
+            {{ calendar.coversToday ? $t('calendar.expiresSoon', { days: calendar.daysLeft }) : $t('calendar.expired') }}
+          </v-alert>
+        </div>
 
-    <template v-else>
+        <v-btn
+          class="home__settings"
+          :class="{ 'home__settings--dim': dimmed }"
+          :icon="mdiCogOutline"
+          variant="text"
+          :aria-label="$t('settings.open')"
+          @click="settingsOpen = true"
+        />
+      </header>
+
+      <WelcomeCard v-if="!calendar.calendar" />
       <CountdownDisplay
-        v-if="shown"
+        v-else-if="shown"
         :target="shown.time"
         :now="now"
         :hebrew-date="hebrewDate"
@@ -17,6 +40,7 @@
         :sunrise="sunrise ?? undefined"
         :sunrise-label="steps.list.sunriseLabel"
         :peeking="peek.isPeeking.value"
+        @pointerdown="peek.startSwipe"
       >
         <template v-if="steps.hasSteps" #nav>
           <StepNav
@@ -31,30 +55,9 @@
         </template>
       </CountdownDisplay>
       <div v-else class="home__empty">{{ $t('countdown.noTime') }}</div>
+    </div>
 
-      <div class="home__notices">
-        <StorageNotice />
-        <v-alert
-          v-if="calendar.expiresSoon"
-          :type="calendar.coversToday ? 'warning' : 'error'"
-          variant="tonal"
-          density="compact"
-        >
-          {{ calendar.coversToday ? $t('calendar.expiresSoon', { days: calendar.daysLeft }) : $t('calendar.expired') }}
-        </v-alert>
-      </div>
-
-      <SleepOverlay :phase="sleep.phase.value" :seconds-left="sleep.warningSecondsLeft.value" @wake="activity.touch" />
-    </template>
-
-    <v-btn
-      class="home__settings"
-      :class="{ 'home__settings--dim': dimmed }"
-      :icon="mdiCogOutline"
-      variant="text"
-      :aria-label="$t('settings.open')"
-      @click="settingsOpen = true"
-    />
+    <SleepOverlay v-if="asleep" @wake="activity.touch" />
 
     <SettingsDialog v-model="settingsOpen" :wake-lock-supported="wakeLock.supported" />
   </v-main>
@@ -101,7 +104,7 @@ const { plan, liveIndex, liveStep, lastStep, sunrise, hebrewDate } = useStepPlan
 const peek = useStepPeek({
   liveIndex,
   count: computed(() => plan.value.length),
-  enabled: computed(() => steps.hasSteps && !settingsOpen.value),
+  enabled: computed(() => steps.hasSteps && !settingsOpen.value && !asleep.value),
   rtl: computed(() => RTL_LOCALES[settings.locale]),
   resetKey: computed(() => steps.list)
 });
@@ -125,52 +128,64 @@ const dimmed = computed(() => {
 const sleep = useAutoSleep(
   now,
   computed(() => lastStep.value?.time.getTime() ?? null),
-  computed(() => settings.autoSleep),
+  computed(() => settings.autoSleep && !settingsOpen.value),
   activity.lastTouchMs
 );
 
-const keepAwake = computed(() => settings.keepAwake && calendar.hasData && sleep.phase.value !== 'asleep');
+const asleep = computed(() => sleep.phase.value === 'asleep');
+const keepAwake = computed(() => settings.keepAwake && calendar.hasData && !asleep.value);
 const wakeLock = useWakeLock(keepAwake);
 </script>
 
 <style scoped>
 .home {
-  position: fixed;
-  inset: 0;
   background: #000;
 }
 
+.home__screen {
+  display: flex;
+  flex-direction: column;
+  min-block-size: 100vh;
+  min-block-size: 100dvh;
+}
+
+.home__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: flex-end;
+  gap: 0.5rem;
+  padding: calc(0.25rem + env(safe-area-inset-top)) calc(0.5rem + env(safe-area-inset-right))
+    0.25rem calc(0.5rem + env(safe-area-inset-left));
+}
+
 .home__empty {
-  position: absolute;
-  inset: 0;
+  flex: 1;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 2rem;
+  padding: 2rem calc(1rem + env(safe-area-inset-right)) calc(2rem + env(safe-area-inset-bottom))
+    calc(1rem + env(safe-area-inset-left));
   text-align: center;
   font-size: 1.4rem;
   background: #333;
 }
 
 .home__settings {
-  position: absolute;
-  top: calc(0.5rem + env(safe-area-inset-top));
-  right: calc(0.5rem + env(safe-area-inset-right));
-  opacity: 0.6;
+  flex: none;
+  opacity: 0.8;
 }
 
-.home__settings--dim {
+.home__settings--dim:not(:focus-visible) {
   opacity: 0.25;
 }
 
 .home__notices {
-  position: absolute;
-  top: calc(0.75rem + env(safe-area-inset-top));
-  left: 0.75rem;
-  right: 3.5rem;
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
+  min-inline-size: 0;
+  max-inline-size: 36rem;
+  margin-inline-end: auto;
 }
 
 .home__notices:empty {

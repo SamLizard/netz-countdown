@@ -1,16 +1,17 @@
 <template>
-  <v-list-item :subtitle="isSunrise ? $t('steps.sunriseLocked') : undefined" @click="emit('edit')">
+  <v-list-item @click="emit('edit')">
     <template #prepend>
       <v-icon v-if="isSunrise" :icon="mdiLockOutline" size="small" />
     </template>
     <v-list-item-title>
       <bdi dir="auto">{{ label }}</bdi>
     </v-list-item-title>
-    <template #append>
-      <span class="step-row__times">
-        {{ formatOffset(offsetSeconds) }}<template v-if="time"> → {{ formatClock(time) }}</template>
-      </span>
-    </template>
+    <p v-if="isSunrise" class="text-caption text-medium-emphasis">{{ $t('steps.sunriseReference') }}</p>
+    <div v-if="time || !isSunrise" class="step-row__times">
+      <bdi dir="ltr">
+        <template v-if="!isSunrise">{{ formatOffset(offsetSeconds) }}<template v-if="time"> → </template></template>{{ time ? formatClock(time) : '' }}
+      </bdi>
+    </div>
   </v-list-item>
 </template>
 
@@ -26,9 +27,12 @@ const emit = defineEmits<{ edit: [] }>();
 
 <style scoped>
 .step-row__times {
-  direction: ltr;
   font-variant-numeric: tabular-nums;
-  white-space: nowrap;
-  margin-inline-start: 0.75rem;
+  font-size: 0.875rem;
+}
+
+.v-list-item-title {
+  white-space: normal;
+  overflow-wrap: anywhere;
 }
 </style>

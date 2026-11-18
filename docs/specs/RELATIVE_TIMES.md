@@ -173,6 +173,8 @@ New / Updated / Unchanged, or the error message in red. Then:
 
 ### 3.6 Import and export files
 
+- **Copy as text** produces a list ready for **Paste a list**: an optional list name followed by tab-separated names and offsets.
+- **Paste a list** also accepts the JSON contents of an exported steps file and uses the same preview as file import.
 - Import file: `<input type="file" accept=".json,application/json">`. Parse with `parseStepsFile`, then show the
   same preview table and Merge/Replace choice as §3.5 (title shows the list name from the file).
 - Export / share: build `File` named `netz-steps-<slug>.json` (slug: list name with spaces and `/\:*?"<>|` replaced
@@ -276,7 +278,7 @@ export function resolvePlan(data: ZmanimData, list: StepsList, now: Date, sunris
 // services/stepsParser.ts
 export class StepsError extends Error { constructor(readonly code: StepsFileErrorCode) }
 export function parseOffset(text: string): { seconds: number } | { error: StepErrorCode } | null;
-export function parsePastedText(text: string): ParsedLine[];  // { lineNo, raw, label?, offsetSeconds?, error? }
+export function parseStepsInput(text: string): { name: string; items: ParsedLine[] }; // clipboard text or exported JSON
 export function parseStepsFile(text: string): { name: string; items: ParsedLine[] };
 export function serializeSteps(list: StepsList, now: Date): string;   // StepsFileV1, 2-space JSON
 export function previewMerge(current: StepsList, items: ParsedLine[], mode: 'merge' | 'replace')
@@ -317,7 +319,7 @@ Components (each well under 200 lines; new ones under `src/components/steps/`):
 
 ## 7. i18n keys
 
-All new keys go in `en.json` and `fr.json`. Error keys live under `steps.errors.*`.
+All new keys go in `en.json`, `fr.json`, and `he.json`. Error keys live under `steps.errors.*`.
 
 | Key | en | fr |
 |---|---|---|

@@ -1,6 +1,6 @@
 <template>
   <v-dialog v-model="open" fullscreen scrollable transition="dialog-bottom-transition">
-    <v-card>
+    <v-card class="editor-shell">
       <v-toolbar density="comfortable" color="surface">
         <v-btn :icon="mdiClose" :aria-label="$t('settings.close')" @click="open = false" />
         <v-toolbar-title>{{ $t('steps.title') }}</v-toolbar-title>
@@ -36,7 +36,8 @@
           @update:model-value="steps.setName"
         />
 
-        <p class="text-caption text-medium-emphasis mt-2 mb-1">
+        <p class="text-body-2 mb-2">{{ $t('steps.sunriseReferenceHint') }}</p>
+        <p class="text-caption text-medium-emphasis mb-1">
           {{ sunrise ? $t('steps.previewFor', { date: dayLabel }) : $t('steps.noPreview') }}
         </p>
 
@@ -156,6 +157,14 @@ function undo() {
 </script>
 
 <style scoped>
+.editor-shell {
+  padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+}
+
+.editor-shell > .v-toolbar {
+  flex: none;
+}
+
 .editor {
   max-width: 640px;
   margin: 0 auto;
