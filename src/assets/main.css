@@ -22,14 +22,19 @@ body {
 
 /* Center Vuetify dialogs inside the usable screen, including landscape cutouts. */
 .v-dialog:not(.v-dialog--fullscreen, .v-bottom-sheet) {
-  padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+  --dialog-safe-top: env(safe-area-inset-top, 0px);
+  --dialog-safe-right: env(safe-area-inset-right, 0px);
+  --dialog-safe-bottom: env(safe-area-inset-bottom, 0px);
+  --dialog-safe-left: env(safe-area-inset-left, 0px);
+  padding: var(--dialog-safe-top) var(--dialog-safe-right) var(--dialog-safe-bottom) var(--dialog-safe-left);
 }
 
 .v-dialog:not(.v-dialog--fullscreen, .v-bottom-sheet) > .v-overlay__content {
   --dialog-gutter: clamp(0.5rem, 3vmin, 1.5rem);
   margin: var(--dialog-gutter);
-  width: calc(100% - 2 * var(--dialog-gutter));
-  max-height: calc(100% - 2 * var(--dialog-gutter));
+  /* The absolutely positioned content is sized against the overlay's padding box. */
+  width: calc(100% - 2 * var(--dialog-gutter) - var(--dialog-safe-left) - var(--dialog-safe-right));
+  max-height: calc(100% - 2 * var(--dialog-gutter) - var(--dialog-safe-top) - var(--dialog-safe-bottom));
 }
 
 .v-dialog .v-card-title {
