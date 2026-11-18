@@ -2,20 +2,19 @@
 
 ## Verdict
 
-**Feasible.** One year of calendar data is enough to predict visible sunrise for any later year within about ±15 s after rounding to the calendar's 15 s grid.
+**Feasible as an estimate, not as a second-accurate countdown.** In two fall holdouts, one year of training data reproduced the printed calendar within ±15 s after rounding to its 15 s grid. That is an observed result, not a bound for other seasons or future years.
 
-- Held-out test: a model fitted on 365 days predicted the other 62 days (same calendar dates, one year later or earlier). Raw error was max 18 s, RMS 7 s, mean −3 s. After rounding to 15 s, every one of the 62 days was within ±15 s, which is one rounding step.
-- The real calendar's own year-to-year change for the same date (2026 vs 2027) is max 30 s, RMS 13 s. The model does better than that.
-- The simple fallback "copy the same calendar date from the data year" is fine for 2026→2027 (max 30 s), but it reaches **~85 s** for a leap year like 2028. So it is not acceptable for vatikin in general. Copying the date from 4 years earlier is accurate (≤ ~5 s).
-
-So a city needs only one PDF, provided the app runs an astronomy library plus a learned horizon table.
+- **Local 2025–26 study:** on 27 strictly later dates, raw RMS error was 7.5 s and worst absolute error was 15.4 s. Nearest-grid rounding matched 18/27 exactly and was 15 s early on the other 9. Rounding up still left one date 15 s early.
+- **Earlier 2026–27 study:** on 62 forward holdout dates, raw RMS error was 6.9 s and worst absolute error was 18.2 s. After rounding, all 62 were within ±15 s. Copying the same date from the prior year reached 30 s error in both studies.
+- The earlier study's ~85 s leap-year copy error and few-second four-year recurrence are model-based comparisons, not validations against printed calendars for those years.
+- **Direct same-date check across both editions:** after removing DST, copying the previous year's Gregorian month and day was off by up to 30 s for 2025→2026 (102 pairs) and 45 s for 2026→2027 (310 pairs). See §8 for the full comparison.
 
 ## 1. Theory
 
 - On a flat horizon, sunrise time depends on latitude, longitude, the sun's declination and the equation of time for that instant. Standard sunrise puts the sun's centre at −0.833° (34′ refraction plus 16′ semidiameter). [SunCalc README](https://github.com/mourner/suncalc/blob/master/README.md), [suncalc issue #104](https://github.com/mourner/suncalc/issues/104).
 - Visible sunrise replaces the flat horizon with the real topographic horizon: the elevation angle of the eastern skyline (mountains) at each azimuth. The skyline is fixed, so visible sunrise depends only on (sun position at that date) + (skyline at the sun's azimuth) + refraction.
 - Calendar makers compute this from digital elevation models. R. Chaim Keller (Chazon Shamayim) compared calculated and observed sunrises in Jerusalem and found the real-horizon sunrise could be modelled to about ±15 s for most of the year ([ResearchGate profile, paper abstracts](https://www.researchgate.net/profile/Chaim-Keller)). Modern open projects do the same with terrain horizons and ray-traced refraction ([Zemaneh-Yosef](https://github.com/orgs/Zemaneh-Yosef/repositories)). MyZmanim publishes weather-aware sunset work with stated ~0.06° accuracy ([MyZmanim](https://hybrid.myzmanim.com/)). Topographic horizon computation itself is a standard technique ([Dozier, NASA NTRS](https://ntrs.nasa.gov/api/citations/20220003481/downloads/Dozier.pdf)).
-- Year-to-year repetition: the Gregorian calendar realigns with the tropical year every 4 years. On the same calendar date the sun's declination drifts by up to ~¼ day of motion per year, and resets in a leap year. Near the equinoxes sunrise in Israel moves up to ~1 min/day, so same-date differences reach about 20 s (1 year apart) and about 60 s (across the leap-year reset). Computed with astronomy-engine for this location:
+- Year-to-year repetition is approximate. An ordinary 365-day year is about 0.24 day shorter than the mean tropical year. Adding a leap day brings the calendar back close to the seasonal cycle, but four Gregorian years with one leap day are not exactly four tropical years ([NASA Glenn: Calendar Calculations](https://www.grc.nasa.gov/www/k-12/Numbers/Math/Mathematical_Thinking/calendar_calculations.htm)). The Sun's position can therefore differ even on the same month and day. [NOAA's sunrise calculation](https://gml.noaa.gov/grad/solcalc/main.js) accounts for both solar declination (how far before solar noon sunrise occurs) and the equation of time (when solar noon occurs on the clock). Near the equinoxes sunrise in Israel moves up to ~1 min/day, so same-date differences reach about 20 s (1 year apart) and about 60 s (across the leap-day adjustment) in this flat-horizon calculation. Computed with astronomy-engine for this location:
 
 | Same date vs 2027 (flat sunrise) | RMS | Max |
 |---|---|---|
@@ -75,22 +74,52 @@ The −10 s mean is the expected leap-cycle drift (2027 dates are ~¼ day "later
 3. **Predict date D:** find the morning time when the sun's geometric altitude equals `profile(azimuth)`. Bisection over 03:00–09:00 takes ~40 evaluations. Add the DST offset by rule for D. Round to 15 s to match the calendar. The calendar's rounding direction is unknown. Rounding to nearest gave mean −3 s; ceiling gave mean +4 s, also within 15 s. Show times as "≈" so users are not misled about precision.
 4. **Prefer real data when available:** if the date is inside the imported PDF range, show the printed value. Use the prediction only outside that range.
 5. **Library:** use [astronomy-engine](https://www.npmjs.com/package/astronomy-engine) (MIT, no dependencies, works offline in the browser, ~116 KB minified / ~47 KB gzipped, ±1′ accuracy; 1′ of altitude ≈ 5 s of sunrise time here). It is tree-shakeable from ESM. A lighter option is [SunCalc](https://github.com/mourner/suncalc) (~2 KB). Its simpler solar formulas are less exact; this was not tested here, so validate it with the script before relying on it.
-6. **Simple fallback without astronomy:** use the value from the same date **4 years** earlier, which was accurate to ≤ ~5 s in the tests above. With only one year of data, the same date last year is accurate to ±20–30 s in normal years but up to ~85 s around leap years, so it is not recommended. Feb 29 has no source date in a non-leap data year; the model handles it naturally.
+6. **Simple fallback without astronomy:** copying the same date from the previous year reached 30 s error in both fall holdouts and 45 s in the broader direct comparison (§8), even after DST correction. The earlier model-based comparisons suggest it can be worse across a leap day. The four-year copy shortcut is unvalidated against a printed four-year holdout. Feb 29 has no source date in a non-leap year.
 
 ## 5. Accuracy vs. vatikin requirement
 
-- The prediction stays within one rounding step (±15 s) of what the same calendar maker would print, with mean bias ≈ −3 s (slightly early). For the Amida at sunrise, an app can add a +15 s safety margin, or round up, to avoid being early.
+- Use the printed time for a second-resolution countdown to the calendar value. Outside the imported range, label the prediction as an estimate (`≈`); displaying seconds does not make it second-accurate. Neither rounding up nor adding a fixed buffer is a validated way to avoid an early prediction.
 - Neither the calendar nor the model captures daily refraction, which changes real sunrise by tens of seconds to minutes ([Schaefer & Liller](https://ui.adsabs.harvard.edu/abs/1990PASP..102..796S)). The calendar is the halachic reference the users follow anyway.
 
 ## 6. Risks and caveats
 
-- **Validation span:** the test is only 62 days (Sep–Nov, azimuth ~95°–110°). The spring/autumn cross-check covers the whole azimuth range, but the solstice ends (where azimuth turns back) are least constrained. Extrapolation is clamped to the observed range.
+- **Validation span:** both cross-year holdouts are in fall. The earlier spring/autumn cross-check is within a seasonal cycle, not a forward-year test. Solstice endpoints are least constrained; the model clamps to the learned azimuth range.
 - **Coverage:** a complete year is required so that every azimuth is seen. A partial year leaves gaps in the profile.
 - **Calendar method:** if the calendar maker changes their method, terrain model or refraction constant in later years, predictions will drift from their new PDFs.
 - **DST:** the rules are set by law (2013 Time Determination Law) and have changed before ([ynet 2013](https://www.ynetnews.com/articles/0,7340,L-4402507,00.html)). Compute DST by rule in one place, and allow overriding it, or use the browser's `Intl` with `Asia/Jerusalem`.
 - **Rounding:** calendar values on a 15 s grid add ±7.5 s noise to the learned profile. Smoothing removes most of it.
 - **Location:** the profile is valid only for the observer point the calendar was computed for. It cannot be moved to another city.
 - **Privacy:** the stored profile (~230 numbers) is derived data, but it still encodes the calendar maker's work. Treat it like the PDF.
+
+## 7. Local 2025–26 forward holdout
+
+The ignored 2025 calendar had 392 consecutive visible-sunrise values across two civil years (102 in 2025, 290 in 2026), all on a 15 s grid and with no usable plain-sunrise values. This model comparison uses the recorded results of the earlier 427-day study; the later direct comparison in §8 uses both calendar files and does not fit a model.
+
+**Reproduce offline:** Import `docs/research/scripts/predict_sunrise.py` with Python 3.9+ (`python3 -B` avoids writing bytecode). Call `load_days(path, None)`, keep visible rows in date order, and split at `[:365]` / `[365:]`. Call `learn_profile` on the first split only with the nominal coordinates already listed in §3 (not the coordinates fitted on the later calendar), the existing 0.6° bandwidth and 0.25° grid. No fit or tuning used the holdout. Call `predict_local_seconds(profile, day, None)` with each holdout date only, then subtract its printed value before or after rounding the *prediction* with `round_seconds` (`none`, `nearest`, or `up`). For the copy baseline, match month/day in the training split and add `(target_offset − source_offset) × 3600` to the training value before scoring. Report aggregates only: the CLI's `--compare` prints per-day times and is not appropriate for a shared log.
+
+**Results (27 later dates in 2026; prediction minus calendar).** Errors are in seconds. Quantiles are of absolute errors, linearly interpolated; skew is the signed third central moment divided by the cubed population standard deviation. Coverage counts use inclusive thresholds.
+
+| Method | Mean bias | RMS | Absolute P50 / P90 / P95 | Signed min…max | Skew | Within 1 / 5 / 15 / 30 s (of 27) |
+|---|---:|---:|---:|---:|---:|---:|
+| Model H, raw | −4.6 | 7.5 | 4.1 / 13.2 / 13.6 | −15.4…+3.5 | −0.29 | 4 / 15 / 26 / 27 |
+| Model H, nearest 15 s | −5.0 | 8.7 | 0 / 15 / 15 | −15…0 | −0.71 | 18 / 18 / 27 / 27 |
+| Model H, round up to 15 s | +4.4 | 9.1 | 0 / 15 / 15 | −15…+15 | +0.13 | 17 / 17 / 27 / 27 |
+| Same date, DST-adjusted | +8.9 | 12.2 | 15 / 15 / 15 | 0…+30 | +0.26 | 12 / 12 / 26 / 27 |
+
+Nearest rounding improved ±15 s coverage (26/27 → 27/27) but increased RMS error. Raw predictions were early on 18/27 days; nearest rounding was 9 early, 18 exact and none late. The result is consistent with the earlier fall holdout, but neither establishes a future error bound or accuracy against observed sunrise.
+
+**DST and leap checks:** Both one-hour jumps in the source matched the rule in date and direction, with none left after offset normalization. The rule also agreed with local `zoneinfo.ZoneInfo("Asia/Jerusalem")` at 06:00 throughout the source span and 2028. The scored holdout had no DST transition. Model H produced valid local predictions for Feb 28, Feb 29, and Mar 1 of 2028, with less than 120 s between adjacent days' predicted times of day. This checks date handling only: no printed leap-year values were available to measure error.
+
+## 8. Direct Gregorian same-date check across the two editions
+
+Both files span parts of two civil years. All 42 dates printed in both editions agreed exactly, so the common dates were counted once. For each distinct date, pair its `visible_sunrise` with the same month and day in the next year where available. To compare like with like, put each time on Israel standard time (UTC+02:00) by subtracting one hour when `Asia/Jerusalem` was on summer time on that date. Then subtract the earlier year's value from the later one's.
+
+| Date pairing | Pairs | Exact | Within ±15 s (including exact) | Mean absolute difference | Range |
+|---|---:|---:|---:|---:|---:|
+| 2025→2026 | 102 | 22 | 100 | 12.1 s | −30 to 0 s |
+| 2026→2027 | 310 | 102 | 290 | 11.1 s | −30 to +45 s |
+
+Without the DST correction, the largest wall-clock difference was 1 h 15 s in each comparison. Matching Gregorian dates is a useful approximation, not an exact rule. The 2025→2026 pairs cover fall and early winter, and the 2026→2027 pairs cover January through early November. Neither pairing tests a leap day, and the comparison measures agreement with the printed calendar, not measured sunrise.
 
 ## Sources
 
@@ -118,7 +147,7 @@ Reproduce: `npm install --no-save astronomy-engine` in `$env:TEMP\sunres`, then
 ```powershell
 $s = "docs/research/scripts/predict_sunrise.py"
 python $s zmanimData.json 2028-03-15                        # one date, rounded to nearest 15 s
-python $s zmanimData.json 2028-03-15 --round-up             # round up (safer for vatikin)
+python $s zmanimData.json 2028-03-15 --round-up             # round up (not a guarantee against early predictions)
 python $s zmanimData.json 2028-03-15 --no-round             # raw seconds
 python $s zmanimData.json --from 2028-03-20 --to 2028-03-31 # one line per day (+ printed value and diff if known)
 python $s zmanimData.json --validate                        # held-out one-year test, both directions
@@ -136,4 +165,4 @@ Results on `zmanimData.json` (prediction − calendar):
 | validate backward (→2026-09-06..11-06, 62 d) | 7.0 s / 14.5 s | −3.4 s / 15 s / 100% |
 | compare against itself (427 d, in-sample) | 5.7 s / 17.5 s | 0.0 s / 15 s / 100% |
 
-With `--round-up`, the mean bias is +4 to +5 s on held-out days and every day stays within ±15 s. In the in-sample self-compare, 1 of 427 days lands at +30 s. 2028 DST transitions land on Fri 2028-03-24 and Sun 2028-10-29.
+In these earlier holdouts, `--round-up` gave a mean bias of +4 to +5 s and kept every day within ±15 s. In the in-sample self-compare, 1 of 427 days landed at +30 s. The local follow-up in §7 shows that rounding up can still predict an early time.
