@@ -9,6 +9,8 @@
     "tomorrow": "tomorrow",
     "target": "Sunrise",
     "now": "Now",
+    "minutes": "{m} min",
+    "hoursMinutes": "{h} h {mm}",
     "noTime": "No sunrise time in your calendar for today"
   },
   "calendar": {
@@ -30,16 +32,56 @@
       "unknown": "The file could not be read."
     }
   },
+  "install": {
+    "open": "Add to Home Screen",
+    "title": "Add to Home Screen",
+    "subtitle": "Open the app from its own icon. It works offline, and your calendar is kept for good.",
+    "storageWarning": "In the browser, your calendar can be deleted after a few days without a visit. Add the app to your Home Screen so it stays.",
+    "howTo": "Show me how",
+    "notNow": "Not now",
+    "installNow": "Install now",
+    "afterInstall": "Then open the app from the new icon and import your calendar there. The browser and the Home Screen app do not share their data.",
+    "ios": {
+      "title": "iPhone and iPad",
+      "step1": "Open this site in Safari.",
+      "step2": "Tap the Share button.",
+      "step3": "Choose Add to Home Screen.",
+      "step4": "Tap Add."
+    },
+    "android": {
+      "title": "Android",
+      "step1": "Open this site in Chrome.",
+      "step2": "Tap the three-dot menu.",
+      "step3": "Choose Install app or Add to Home Screen."
+    }
+  },
+  "sleep": {
+    "warning": "Sunrise has passed. The screen turns off in {seconds} s. Touch the screen to keep it on.",
+    "wake": "Touch to turn the screen back on"
+  },
   "settings": {
     "title": "Settings",
     "open": "Open settings",
     "display": "Display",
     "blackBackground": "Black background",
     "blackBackgroundHint": "Only the number changes color. Uses less battery.",
+    "hideFarDigits": "Hide the number while sunrise is far",
+    "hideFarDigitsHint": "Shows a grey __:__ until {minutes} min before sunrise.",
+    "warningMinutes": "Start turning red (minutes before sunrise)",
+    "battery": "Battery",
+    "farRefresh": "Refresh while sunrise is far",
+    "farRefreshHint": "Close to sunrise the countdown always updates every second.",
+    "refresh": {
+      "every1": "Every second",
+      "every10": "Every 10 seconds",
+      "every60": "Every minute"
+    },
     "keepAwake": "Keep the screen on",
     "keepAwakeHint": "The phone does not lock while the countdown is open.",
     "keepAwakeUnsupported": "Not supported on this device. Update iOS or set Auto-Lock manually.",
-    "warningMinutes": "Start turning red (minutes before sunrise)",
+    "autoSleep": "Turn the screen off after sunrise",
+    "autoSleepHint": "1 minute after sunrise without touch, the screen goes black and the phone can lock. Touch to cancel.",
+    "brightnessTip": "Tip: lowering the screen brightness saves more battery than any setting here.",
     "calendar": "Calendar",
     "close": "Close"
   }

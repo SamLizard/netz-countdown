@@ -9,6 +9,8 @@
     "tomorrow": "demain",
     "target": "Netz",
     "now": "Maintenant",
+    "minutes": "{m} min",
+    "hoursMinutes": "{h} h {mm}",
     "noTime": "Pas d'heure de netz dans votre calendrier pour aujourd'hui"
   },
   "calendar": {
@@ -30,16 +32,56 @@
       "unknown": "Le fichier n'a pas pu être lu."
     }
   },
+  "install": {
+    "open": "Ajouter à l'écran d'accueil",
+    "title": "Ajouter à l'écran d'accueil",
+    "subtitle": "Ouvrez l'application depuis sa propre icône. Elle fonctionne hors ligne et votre calendrier est gardé pour de bon.",
+    "storageWarning": "Dans le navigateur, votre calendrier peut être effacé après quelques jours sans visite. Ajoutez l'application à l'écran d'accueil pour le garder.",
+    "howTo": "Comment faire",
+    "notNow": "Plus tard",
+    "installNow": "Installer maintenant",
+    "afterInstall": "Ouvrez ensuite l'application depuis la nouvelle icône et importez-y votre calendrier. Le navigateur et l'application de l'écran d'accueil ne partagent pas leurs données.",
+    "ios": {
+      "title": "iPhone et iPad",
+      "step1": "Ouvrez ce site dans Safari.",
+      "step2": "Touchez le bouton Partager.",
+      "step3": "Choisissez Ajouter à l'écran d'accueil.",
+      "step4": "Touchez Ajouter."
+    },
+    "android": {
+      "title": "Android",
+      "step1": "Ouvrez ce site dans Chrome.",
+      "step2": "Touchez le menu à trois points.",
+      "step3": "Choisissez Installer l'application ou Ajouter à l'écran d'accueil."
+    }
+  },
+  "sleep": {
+    "warning": "Le netz est passé. L'écran s'éteint dans {seconds} s. Touchez l'écran pour le garder allumé.",
+    "wake": "Touchez pour rallumer l'écran"
+  },
   "settings": {
     "title": "Réglages",
     "open": "Ouvrir les réglages",
     "display": "Affichage",
     "blackBackground": "Fond noir",
     "blackBackgroundHint": "Seul le chiffre change de couleur. Consomme moins de batterie.",
+    "hideFarDigits": "Masquer le chiffre tant que le netz est loin",
+    "hideFarDigitsHint": "Affiche un __:__ gris jusqu'à {minutes} min avant le netz.",
+    "warningMinutes": "Passer au rouge (minutes avant le netz)",
+    "battery": "Batterie",
+    "farRefresh": "Actualisation tant que le netz est loin",
+    "farRefreshHint": "Près du netz, le compte à rebours s'actualise toujours chaque seconde.",
+    "refresh": {
+      "every1": "Chaque seconde",
+      "every10": "Toutes les 10 secondes",
+      "every60": "Chaque minute"
+    },
     "keepAwake": "Garder l'écran allumé",
     "keepAwakeHint": "Le téléphone ne se verrouille pas tant que le compte à rebours est ouvert.",
     "keepAwakeUnsupported": "Non disponible sur cet appareil. Mettez iOS à jour ou réglez le verrouillage automatique.",
-    "warningMinutes": "Passer au rouge (minutes avant le netz)",
+    "autoSleep": "Éteindre l'écran après le netz",
+    "autoSleepHint": "1 minute après le netz sans toucher l'écran, il devient noir et le téléphone peut se verrouiller. Touchez pour annuler.",
+    "brightnessTip": "Astuce : baisser la luminosité de l'écran économise plus de batterie que tous ces réglages.",
     "calendar": "Calendrier",
     "close": "Fermer"
   }

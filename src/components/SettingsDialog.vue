@@ -8,53 +8,36 @@
       </v-card-title>
 
       <v-card-text>
-        <LanguageSelection class="mb-6" />
+        <LanguageSelection class="mb-4" />
+        <DisplaySettings :wake-lock-supported="wakeLockSupported" />
 
-        <div class="text-subtitle-2">{{ $t('settings.display') }}</div>
-        <v-switch
-          v-model="settings.blackBackground"
-          :label="$t('settings.blackBackground')"
-          :hint="$t('settings.blackBackgroundHint')"
-          persistent-hint
-          color="primary"
-          class="mb-2"
-        />
-        <v-switch
-          v-model="settings.keepAwake"
-          :label="$t('settings.keepAwake')"
-          :hint="$t(wakeLockSupported ? 'settings.keepAwakeHint' : 'settings.keepAwakeUnsupported')"
-          :disabled="!wakeLockSupported"
-          persistent-hint
-          color="primary"
-          class="mb-4"
-        />
-
-        <v-slider
-          v-model="settings.warningMinutes"
-          :label="$t('settings.warningMinutes')"
-          :min="1"
-          :max="30"
-          :step="1"
-          thumb-label
-          color="primary"
-          class="mb-6"
-        />
-
-        <v-divider class="mb-4" />
+        <v-divider class="my-4" />
         <CalendarSection />
+
+        <template v-if="!isStandalone">
+          <v-divider class="my-4" />
+          <v-btn block color="primary" variant="tonal" :prepend-icon="mdiCellphoneArrowDown" @click="guideOpen = true">
+            {{ $t('install.open') }}
+          </v-btn>
+        </template>
       </v-card-text>
     </v-card>
   </v-dialog>
+  <InstallGuideDialog v-model="guideOpen" />
 </template>
 
 <script setup lang="ts">
-import { mdiClose } from '@mdi/js';
-import { useSettingsStore } from '@/stores/settings';
+import { ref } from 'vue';
+import { mdiCellphoneArrowDown, mdiClose } from '@mdi/js';
+import { useInstallPrompt } from '@/composables/useInstallPrompt';
 import CalendarSection from './CalendarSection.vue';
+import DisplaySettings from './DisplaySettings.vue';
+import InstallGuideDialog from './InstallGuideDialog.vue';
 import LanguageSelection from './LanguageSelection.vue';
 
 defineProps<{ wakeLockSupported: boolean }>();
 const open = defineModel<boolean>({ required: true });
 
-const settings = useSettingsStore();
+const { isStandalone } = useInstallPrompt();
+const guideOpen = ref(false);
 </script>

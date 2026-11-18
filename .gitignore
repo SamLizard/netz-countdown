@@ -35,3 +35,9 @@ zmanimData.json
 
 # Previous version of the app, kept locally only
 _old-app/
+
+# Local test artifacts
+_*.html
+_*.ps1
+_*.mjs
+_shots/

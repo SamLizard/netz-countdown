@@ -27,6 +27,12 @@ export interface StoredCalendar {
   data: ZmanimData;
 }
 
+/** How often the screen refreshes while sunrise is still far away. */
+export type FarRefreshSeconds = 1 | 10 | 60;
+
+/** Screen state after sunrise when auto-sleep is on. */
+export type SleepPhase = 'awake' | 'warning' | 'asleep';
+
 export interface CountdownTarget {
   date: Date;
   hebrewDate?: string;

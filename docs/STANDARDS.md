@@ -20,7 +20,7 @@
 | `src/composables` | Reusable Vue logic with lifecycle (`useNow`, `useWakeLock`) |
 | `src/i18n` | vue-i18n setup (`index.ts`: `LOCALES`, `RTL_LOCALES`) and `locales/<code>.json`, same keys in every file |
 | `src/plugins` | Vuetify and other app-level setup |
-| `docs` | Project documentation, including this file |
+| `docs` | Project documentation, including this file. `docs/research` = findings, `docs/specs` = features to build |
 | `shortcut` | The older Apple Shortcut version, kept for reference |
 
 ## Components
@@ -50,6 +50,13 @@
 - Prefer Vuetify props and utility classes. Use scoped styles for layout that Vuetify does not cover.
 - Countdown colors are computed in `services/countdown.ts`, not hard-coded in components.
 - Support both display styles: colored background, or black background with only the number colored (OLED friendly).
+
+## Battery
+
+- Never tick faster than needed. Use `useNow()` (adaptive, aligned to second boundaries, paused when hidden); do not add `setInterval` loops or `requestAnimationFrame` for clock displays.
+- No continuous CSS transitions or animations on the countdown screen.
+- Keep lit pixels low in black-background mode: dim greys for secondary text, no pure white areas.
+- Background: `docs/research/ENERGY.md`.
 
 ## Scripts
 
