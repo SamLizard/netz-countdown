@@ -4,16 +4,32 @@
 
     <template v-else>
       <CountdownDisplay
-        v-if="target"
-        :target="target.date"
+        v-if="shown"
+        :target="shown.time"
         :now="now"
-        :hebrew-date="target.hebrewDate"
-        :warning-seconds="warningSeconds"
+        :hebrew-date="hebrewDate"
+        :warning-seconds="shown.warningSeconds"
         :black-background="settings.blackBackground"
         :hide-far-digits="settings.hideFarDigits"
         :step-seconds="stepSeconds"
         :dimmed="dimmed"
-      />
+        :label="shown.label"
+        :sunrise="sunrise ?? undefined"
+        :sunrise-label="steps.list.sunriseLabel"
+        :peeking="peek.isPeeking.value"
+      >
+        <template v-if="steps.hasSteps" #nav>
+          <StepNav
+            :labels="navLabels"
+            :shown-index="peek.shownIndex.value"
+            :live-index="liveIndex"
+            :peeking="peek.isPeeking.value"
+            @prev="peek.prev"
+            @next="peek.next"
+            @live="peek.backToLive"
+          />
+        </template>
+      </CountdownDisplay>
       <div v-else class="home__empty">{{ $t('countdown.noTime') }}</div>
 
       <div class="home__notices">
@@ -46,48 +62,69 @@
 
 <script setup lang="ts">
 import { computed, ref } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { mdiCogOutline } from '@mdi/js';
 import { useCalendarStore } from '@/stores/calendar';
 import { useSettingsStore } from '@/stores/settings';
+import { useStepsStore } from '@/stores/steps';
 import { useNow } from '@/composables/useNow';
 import { useWakeLock } from '@/composables/useWakeLock';
 import { useAutoSleep } from '@/composables/useAutoSleep';
 import { useTouchActivity } from '@/composables/useTouchActivity';
-import { DIM_OFF_LAST_SECONDS, refreshStepSeconds, resolveTarget } from '@/services/countdown';
+import { useStepPlan } from '@/composables/useStepPlan';
+import { useStepPeek } from '@/composables/useStepPeek';
+import { DIM_OFF_LAST_SECONDS, refreshStepSeconds } from '@/services/countdown';
+import { RTL_LOCALES } from '@/i18n';
 import CountdownDisplay from '@/components/CountdownDisplay.vue';
 import SettingsDialog from '@/components/SettingsDialog.vue';
 import SleepOverlay from '@/components/SleepOverlay.vue';
 import StorageNotice from '@/components/StorageNotice.vue';
 import WelcomeCard from '@/components/WelcomeCard.vue';
+import StepNav from '@/components/steps/StepNav.vue';
 
+const { t } = useI18n();
 const calendar = useCalendarStore();
 const settings = useSettingsStore();
+const steps = useStepsStore();
 const settingsOpen = ref(false);
 const activity = useTouchActivity();
 
-const warningSeconds = computed(() => settings.warningMinutes * 60);
-
+// Refresh rate, near-target rules and tick alignment follow the live step (or sunrise without steps).
 const now = useNow(() => ({
-  targetMs: target.value?.date.getTime() ?? null,
-  warningSeconds: warningSeconds.value,
+  targetMs: liveStep.value?.time.getTime() ?? null,
+  warningSeconds: liveStep.value?.warningSeconds ?? settings.warningMinutes * 60,
   farStepSeconds: settings.farRefreshSeconds
 }));
 
-const target = computed(() => (calendar.calendar ? resolveTarget(calendar.calendar.data, now.value) : null));
-const remaining = computed(() => (target.value ? (target.value.date.getTime() - now.value.getTime()) / 1000 : null));
+const { plan, liveIndex, liveStep, lastStep, sunrise, hebrewDate } = useStepPlan(now);
 
-const stepSeconds = computed(() => refreshStepSeconds(remaining.value, warningSeconds.value, settings.farRefreshSeconds));
+const peek = useStepPeek({
+  liveIndex,
+  count: computed(() => plan.value.length),
+  enabled: computed(() => steps.hasSteps && !settingsOpen.value),
+  rtl: computed(() => RTL_LOCALES[settings.locale]),
+  resetKey: computed(() => steps.list)
+});
 
-// Dim after 10 s without touch, except in the last minute before sunrise.
+const shown = computed(() => plan.value[peek.shownIndex.value] ?? liveStep.value);
+const navLabels = computed(() => plan.value.map((s) => s.label ?? t('countdown.target')));
+
+const liveRemaining = computed(() => (liveStep.value ? (liveStep.value.time.getTime() - now.value.getTime()) / 1000 : null));
+const stepSeconds = computed(() =>
+  refreshStepSeconds(liveRemaining.value, liveStep.value?.warningSeconds ?? 0, settings.farRefreshSeconds)
+);
+
+// Dim after 10 s without touch, except in the last minute before the live step.
 const dimmed = computed(() => {
   if (!settings.dimWhenIdle || !activity.idle.value || settingsOpen.value) return false;
-  const r = remaining.value;
+  const r = liveRemaining.value;
   return !(r !== null && r > 0 && r <= DIM_OFF_LAST_SECONDS);
 });
 
+// Auto-sleep after the last step of the plan (sunrise unless there are after-sunrise steps).
 const sleep = useAutoSleep(
   now,
-  computed(() => target.value?.date.getTime() ?? null),
+  computed(() => lastStep.value?.time.getTime() ?? null),
   computed(() => settings.autoSleep),
   activity.lastTouchMs
 );

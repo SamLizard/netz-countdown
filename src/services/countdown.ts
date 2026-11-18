@@ -92,6 +92,8 @@ export function nextTickDelay(nowMs: number, targetMs: number | null, warningSec
   if (remainingMs !== null) {
     const toCountdownBoundary = ((remainingMs % stepMs) + stepMs) % stepMs || stepMs;
     delay = Math.min(delay, toCountdownBoundary);
+    // Never sleep past the target itself (with prayer steps: the step change must happen on time).
+    if (remainingMs > 0) delay = Math.min(delay, remainingMs);
     for (const threshold of [warningSeconds, FINAL_SECONDS]) {
       const toThreshold = remainingMs - threshold * 1000;
       if (toThreshold > 0) delay = Math.min(delay, toThreshold);

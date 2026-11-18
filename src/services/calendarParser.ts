@@ -5,7 +5,7 @@ export const SUNRISE_KEY = 'visible_sunrise';
 const DATE_KEY_RE = /^\d{4}-\d{2}-\d{2}$/;
 const SUNRISE_RE = /^(\d{1,2}):(\d{2}):(\d{2})$/;
 
-export type CalendarErrorCode = 'invalidJson' | 'invalidFormat' | 'noSunrise';
+export type CalendarErrorCode = 'invalidJson' | 'invalidFormat' | 'noSunrise' | 'isStepsFile';
 
 export class CalendarError extends Error {
   constructor(public readonly code: CalendarErrorCode) {
@@ -30,6 +30,10 @@ export function parseCalendar(text: string, fileName: string): StoredCalendar {
     raw = JSON.parse(text);
   } catch {
     throw new CalendarError('invalidJson');
+  }
+
+  if (raw && typeof raw === 'object' && (raw as { kind?: unknown }).kind === 'netz.steps') {
+    throw new CalendarError('isStepsFile');
   }
 
   const data = raw as Partial<ZmanimData> | null;

@@ -12,6 +12,9 @@
         <DisplaySettings :wake-lock-supported="wakeLockSupported" />
 
         <v-divider class="my-4" />
+        <StepsSettingsSection />
+
+        <v-divider class="my-4" />
         <CalendarSection />
 
         <template v-if="!isStandalone">
@@ -34,6 +37,7 @@ import CalendarSection from './CalendarSection.vue';
 import DisplaySettings from './DisplaySettings.vue';
 import InstallGuideDialog from './InstallGuideDialog.vue';
 import LanguageSelection from './LanguageSelection.vue';
+import StepsSettingsSection from './steps/StepsSettingsSection.vue';
 
 defineProps<{ wakeLockSupported: boolean }>();
 const open = defineModel<boolean>({ required: true });
