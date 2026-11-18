@@ -1,10 +1,12 @@
 import { defineStore } from 'pinia';
 import { ref, watch } from 'vue';
 import { i18n, isLocale, RTL_LOCALES, type LocaleCode } from '@/i18n';
-import type { FarRefreshSeconds } from '@/types';
 
 const STORAGE_KEY = 'netz.settings.v1';
-const REFRESH_CHOICES: readonly FarRefreshSeconds[] = [1, 10, 60];
+
+/** Allowed range for the "refresh while sunrise is far" step, in seconds. */
+export const FAR_REFRESH_MIN = 1;
+export const FAR_REFRESH_MAX = 3600;
 
 interface SavedSettings {
   locale: LocaleCode;
@@ -12,7 +14,8 @@ interface SavedSettings {
   keepAwake: boolean;
   warningMinutes: number;
   hideFarDigits: boolean;
-  farRefreshSeconds: FarRefreshSeconds;
+  farRefreshSeconds: number;
+  dimWhenIdle: boolean;
   autoSleep: boolean;
   storageNoticeDismissed: boolean;
 }
@@ -29,6 +32,11 @@ function defaultLocale(): LocaleCode {
   return navigator.language?.toLowerCase().startsWith('fr') ? 'fr' : 'en';
 }
 
+export function clampFarRefresh(value: unknown): number {
+  const n = Math.round(Number(value));
+  return Number.isFinite(n) ? Math.min(FAR_REFRESH_MAX, Math.max(FAR_REFRESH_MIN, n)) : 60;
+}
+
 export const useSettingsStore = defineStore('settings', () => {
   const saved = load();
 
@@ -37,14 +45,13 @@ export const useSettingsStore = defineStore('settings', () => {
   const keepAwake = ref(saved.keepAwake ?? true);
   const warningMinutes = ref(saved.warningMinutes ?? 8);
   const hideFarDigits = ref(saved.hideFarDigits ?? true);
-  const farRefreshSeconds = ref<FarRefreshSeconds>(
-    saved.farRefreshSeconds && REFRESH_CHOICES.includes(saved.farRefreshSeconds) ? saved.farRefreshSeconds : 60
-  );
+  const farRefreshSeconds = ref(clampFarRefresh(saved.farRefreshSeconds ?? 60));
+  const dimWhenIdle = ref(saved.dimWhenIdle ?? true);
   const autoSleep = ref(saved.autoSleep ?? true);
   const storageNoticeDismissed = ref(saved.storageNoticeDismissed ?? false);
 
   watch(
-    [locale, blackBackground, keepAwake, warningMinutes, hideFarDigits, farRefreshSeconds, autoSleep, storageNoticeDismissed],
+    [locale, blackBackground, keepAwake, warningMinutes, hideFarDigits, farRefreshSeconds, dimWhenIdle, autoSleep, storageNoticeDismissed],
     () => {
       const value: SavedSettings = {
         locale: locale.value,
@@ -53,6 +60,7 @@ export const useSettingsStore = defineStore('settings', () => {
         warningMinutes: warningMinutes.value,
         hideFarDigits: hideFarDigits.value,
         farRefreshSeconds: farRefreshSeconds.value,
+        dimWhenIdle: dimWhenIdle.value,
         autoSleep: autoSleep.value,
         storageNoticeDismissed: storageNoticeDismissed.value
       };
@@ -79,6 +87,7 @@ export const useSettingsStore = defineStore('settings', () => {
     warningMinutes,
     hideFarDigits,
     farRefreshSeconds,
+    dimWhenIdle,
     autoSleep,
     storageNoticeDismissed
   };

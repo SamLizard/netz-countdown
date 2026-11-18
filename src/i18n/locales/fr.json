@@ -66,23 +66,29 @@
     "blackBackground": "Fond noir",
     "blackBackgroundHint": "Seul le chiffre change de couleur. Consomme moins de batterie.",
     "hideFarDigits": "Masquer le chiffre tant que le netz est loin",
-    "hideFarDigitsHint": "Affiche un __:__ gris jusqu'à {minutes} min avant le netz.",
+    "hideFarDigitsHint": "Affiche un __:__ gris jusqu'à 2 heures avant le netz.",
     "warningMinutes": "Passer au rouge (minutes avant le netz)",
     "battery": "Batterie",
     "farRefresh": "Actualisation tant que le netz est loin",
-    "farRefreshHint": "Près du netz, le compte à rebours s'actualise toujours chaque seconde.",
+    "farRefreshHint": "Dans les dernières minutes avant le netz, il s'actualise au moins toutes les 5 secondes, et chaque seconde pendant les 20 dernières secondes.",
     "refresh": {
       "every1": "Chaque seconde",
       "every10": "Toutes les 10 secondes",
-      "every60": "Chaque minute"
+      "every60": "Chaque minute",
+      "custom": "Personnalisé",
+      "customSeconds": "Actualiser toutes les",
+      "secondsSuffix": "secondes",
+      "range": "Entre {min} et {max} secondes"
     },
     "keepAwake": "Garder l'écran allumé",
     "keepAwakeHint": "Le téléphone ne se verrouille pas tant que le compte à rebours est ouvert.",
     "keepAwakeUnsupported": "Non disponible sur cet appareil. Mettez iOS à jour ou réglez le verrouillage automatique.",
     "autoSleep": "Éteindre l'écran après le netz",
-    "autoSleepHint": "1 minute après le netz sans toucher l'écran, il devient noir et le téléphone peut se verrouiller. Touchez pour annuler.",
-    "brightnessTip": "Astuce : baisser la luminosité de l'écran économise plus de batterie que tous ces réglages.",
+    "autoSleepHint": "Juste après le netz, sauf si vous touchez l'écran, il devient noir et le téléphone peut se verrouiller.",
+    "brightnessTip": "Astuce : une application web ne peut pas changer la luminosité. La baisser dans le Centre de contrôle économise le plus de batterie.",
     "calendar": "Calendrier",
-    "close": "Fermer"
+    "close": "Fermer",
+    "dimWhenIdle": "Assombrir sans toucher l'écran",
+    "dimWhenIdleHint": "Après 10 secondes sans toucher, l'écran devient plus sombre. Touchez pour l'éclaircir. Jamais assombri pendant la dernière minute."
   }
 }

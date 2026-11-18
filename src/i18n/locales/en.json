@@ -66,23 +66,29 @@
     "blackBackground": "Black background",
     "blackBackgroundHint": "Only the number changes color. Uses less battery.",
     "hideFarDigits": "Hide the number while sunrise is far",
-    "hideFarDigitsHint": "Shows a grey __:__ until {minutes} min before sunrise.",
+    "hideFarDigitsHint": "Shows a grey __:__ until 2 hours before sunrise.",
     "warningMinutes": "Start turning red (minutes before sunrise)",
     "battery": "Battery",
     "farRefresh": "Refresh while sunrise is far",
-    "farRefreshHint": "Close to sunrise the countdown always updates every second.",
+    "farRefreshHint": "In the last minutes before sunrise it updates at least every 5 seconds, and every second in the last 20 seconds.",
     "refresh": {
       "every1": "Every second",
       "every10": "Every 10 seconds",
-      "every60": "Every minute"
+      "every60": "Every minute",
+      "custom": "Custom",
+      "customSeconds": "Refresh every",
+      "secondsSuffix": "seconds",
+      "range": "Between {min} and {max} seconds"
     },
     "keepAwake": "Keep the screen on",
     "keepAwakeHint": "The phone does not lock while the countdown is open.",
     "keepAwakeUnsupported": "Not supported on this device. Update iOS or set Auto-Lock manually.",
     "autoSleep": "Turn the screen off after sunrise",
-    "autoSleepHint": "1 minute after sunrise without touch, the screen goes black and the phone can lock. Touch to cancel.",
-    "brightnessTip": "Tip: lowering the screen brightness saves more battery than any setting here.",
+    "autoSleepHint": "Right after sunrise, unless you touch the screen, it goes black and the phone can lock.",
+    "brightnessTip": "Tip: a web app cannot change the screen brightness. Lowering it in Control Center saves the most battery.",
     "calendar": "Calendar",
-    "close": "Close"
+    "close": "Close",
+    "dimWhenIdle": "Dim when not touched",
+    "dimWhenIdleHint": "After 10 seconds without touch the screen gets darker. Touch to brighten. Never dimmed in the last minute."
   }
 }

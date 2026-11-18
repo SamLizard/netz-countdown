@@ -1,5 +1,5 @@
 <template>
-  <div class="countdown" :style="{ backgroundColor: background }">
+  <div class="countdown" :style="{ backgroundColor: background, '--countdown-text': textColor }">
     <div class="countdown__main">
       <div class="countdown__value" :class="{ 'countdown__value--far': hidden }" :style="{ color: numberColor }">
         {{ value }}
@@ -22,7 +22,7 @@
 
 <script setup lang="ts">
 import { computed } from 'vue';
-import { colorFor, formatClock, formatDuration, secondsUntil } from '@/services/countdown';
+import { colorFor, digitsHidden, formatClock, formatDuration, secondsUntil } from '@/services/countdown';
 
 const props = defineProps<{
   target: Date;
@@ -34,30 +34,34 @@ const props = defineProps<{
   hideFarDigits: boolean;
   /** Current refresh step in seconds; the display never shows more precision than this. */
   stepSeconds: number;
+  /** Lower lightness for the number and secondary text (idle). */
+  dimmed?: boolean;
 }>();
-
-const FAR_GREY = '#3a3a3a';
-const FAR_BACKGROUND = '#1c1c1c';
 
 const remaining = computed(() => secondsUntil(props.target, props.now));
 const late = computed(() => remaining.value <= 0);
-const far = computed(() => remaining.value > props.warningSeconds);
-const hidden = computed(() => far.value && props.hideFarDigits);
+const hidden = computed(() => digitsHidden(remaining.value, props.hideFarDigits));
+
+const farGrey = computed(() => (props.dimmed ? '#262626' : '#3a3a3a'));
+const FAR_BACKGROUND = '#1c1c1c';
 
 const value = computed(() => {
   if (hidden.value) return '__:__';
   return (late.value ? '+' : '') + formatDuration(remaining.value, props.stepSeconds);
 });
 
-const color = computed(() => colorFor(remaining.value, props.warningSeconds, props.blackBackground));
+const color = computed(() => colorFor(remaining.value, props.warningSeconds, props.blackBackground, props.dimmed));
 const background = computed(() => {
   if (props.blackBackground) return '#000';
   return hidden.value ? FAR_BACKGROUND : color.value;
 });
 const numberColor = computed(() => {
-  if (hidden.value) return FAR_GREY;
-  return props.blackBackground ? color.value : '#fff';
+  if (hidden.value) return farGrey.value;
+  if (props.blackBackground) return color.value;
+  return props.dimmed ? 'rgba(255, 255, 255, 0.55)' : '#fff';
 });
+/** Labels and small times: dimmer grey when idle. */
+const textColor = computed(() => `rgba(255, 255, 255, ${props.dimmed ? 0.3 : 0.55})`);
 
 const isTomorrow = computed(() => props.target.getDate() !== props.now.getDate());
 const targetClock = computed(() => formatClock(props.target));
@@ -104,19 +108,19 @@ const nowClock = computed(() => formatClock(props.now, props.stepSeconds < 60));
   margin-top: 0.75rem;
   font-size: clamp(1.1rem, 4.5vw, 1.8rem);
   font-weight: 500;
-  color: rgba(255, 255, 255, 0.6);
+  color: var(--countdown-text);
 }
 
 .countdown__hebrew {
   margin-top: 0.5rem;
   font-size: 1.05rem;
   text-align: center;
-  color: rgba(255, 255, 255, 0.45);
+  color: var(--countdown-text);
 }
 
 .countdown__footer {
   width: 100%;
-  color: rgba(255, 255, 255, 0.55);
+  color: var(--countdown-text);
   font-variant-numeric: tabular-nums;
 }
 

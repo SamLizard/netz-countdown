@@ -110,3 +110,30 @@ Content from sources was rephrased for compliance with licensing restrictions.
 
 Reproduce: `npm install --no-save astronomy-engine` in `$env:TEMP\sunres`, then
 `$env:ASTRO_PATH="$env:TEMP\sunres\node_modules\astronomy-engine\astronomy.js"; node docs/research/scripts/analyze_sunrise.mjs`
+
+## Python script
+
+`docs/research/scripts/predict_sunrise.py` is a standalone port of Model H. It needs Python 3.9+ and the standard library only. The solar position uses the Meeus/NOAA low-precision formulas. Near the horizon it agrees with astronomy-engine within 0.008° in altitude and azimuth (about 1 s of sunrise time). Geometric altitude is used in both learning and prediction, so refraction and semidiameter fold into the learned horizon. DST is applied by the Israel rule in one function (`israel_utc_offset_hours`). Each run prints a check of the rule against the one-hour jumps found in the input file.
+
+```powershell
+$s = "docs/research/scripts/predict_sunrise.py"
+python $s zmanimData.json 2028-03-15                        # one date, rounded to nearest 15 s
+python $s zmanimData.json 2028-03-15 --round-up             # round up (safer for vatikin)
+python $s zmanimData.json 2028-03-15 --no-round             # raw seconds
+python $s zmanimData.json --from 2028-03-20 --to 2028-03-31 # one line per day (+ printed value and diff if known)
+python $s zmanimData.json --validate                        # held-out one-year test, both directions
+python $s zmanimData.json --compare other_year.json         # learn from file 1, predict every date of file 2
+python $s zmanimData.json --export-profile profile.json     # lat, lon, azimuth grid, altitudes (no calendar times)
+```
+
+Options: `--lat/--lon` override the fitted location (the default fallback is 32.12 N 34.84 E when the plain-sunrise column is too sparse), `--utc-offset-hours` forces a fixed offset for testing, and `--bandwidth` (0.6°) and `--grid-step` (0.25°) control smoothing. Location fitting takes a few seconds. Progress notes go to stderr.
+
+Results on `zmanimData.json` (prediction − calendar):
+
+| Test | raw RMS / max | rounded 15 s: mean / max / within ±15 s |
+|---|---|---|
+| validate forward (→2027-09-06..11-06, 62 d) | 6.8 s / 17.8 s | −2.4 s / 15 s / 100% |
+| validate backward (→2026-09-06..11-06, 62 d) | 7.0 s / 14.5 s | −3.4 s / 15 s / 100% |
+| compare against itself (427 d, in-sample) | 5.7 s / 17.5 s | 0.0 s / 15 s / 100% |
+
+With `--round-up`, the mean bias is +4 to +5 s on held-out days and every day stays within ±15 s. In the in-sample self-compare, 1 of 427 days lands at +30 s. 2028 DST transitions land on Fri 2028-03-24 and Sun 2028-10-29.
