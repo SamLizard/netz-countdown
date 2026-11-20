@@ -68,15 +68,20 @@ const guideOpen = ref(false);
   background-color: rgba(var(--v-theme-on-surface), 0.05);
 }
 
-.settings-body :deep(.v-btn:not(.v-btn--icon)) {
+.settings-body :deep(.v-btn--block:not(.v-btn--icon)) {
+  grid-template-columns: max-content minmax(0, 1fr) max-content;
   min-block-size: 44px;
   height: auto;
   padding-block: 0.5rem;
-  white-space: normal;
+  letter-spacing: normal;
+  text-transform: none;
 }
 
-.settings-body :deep(.v-btn__content) {
+.settings-body :deep(.v-btn--block > .v-btn__content) {
+  display: block;
   min-inline-size: 0;
+  white-space: normal;
+  line-height: 1.3;
   text-align: center;
   overflow-wrap: anywhere;
 }
