@@ -5,46 +5,104 @@ import { onMounted, onUnmounted, ref, watch, type Ref } from 'vue';
  * iOS releases the lock when the app goes to the background, so it is requested again on return.
  */
 export function useWakeLock(enabled: Ref<boolean>) {
-  const supported = typeof navigator !== 'undefined' && 'wakeLock' in navigator;
+  const supported = typeof navigator !== 'undefined' && typeof navigator.wakeLock?.request === 'function';
   const active = ref(false);
   let sentinel: WakeLockSentinel | null = null;
+  let mounted = false;
+  let pageHidden = false;
+  let pending = false;
+  let retryTimer: number | undefined;
+  let retries = 0;
+
+  const canAcquire = () => mounted && !pageHidden && supported && enabled.value && document.visibilityState === 'visible';
+
+  function retry() {
+    if (!canAcquire() || retryTimer !== undefined || retries >= 3) return;
+    retryTimer = window.setTimeout(() => {
+      retryTimer = undefined;
+      void acquire();
+    }, 500 * 2 ** retries++);
+  }
 
   async function acquire() {
-    if (!supported || !enabled.value || sentinel || document.visibilityState !== 'visible') return;
+    if (!canAcquire() || pending || (sentinel && !sentinel.released)) return;
+    sentinel = null;
+    active.value = false;
+    pending = true;
     try {
-      sentinel = await navigator.wakeLock.request('screen');
+      const lock = await navigator.wakeLock.request('screen');
+      if (!canAcquire()) {
+        await lock.release();
+        return;
+      }
+      if (lock.released) {
+        retry();
+        return;
+      }
+      sentinel = lock;
       active.value = true;
-      sentinel.addEventListener('release', () => {
+      lock.addEventListener('release', () => {
+        if (sentinel !== lock) return;
         sentinel = null;
         active.value = false;
-      });
+        retry();
+      }, { once: true });
     } catch {
-      active.value = false;
+      // iOS can reject a request while the app is returning to the foreground.
+      retry();
+    } finally {
+      pending = false;
     }
   }
 
-  async function release() {
-    await sentinel?.release();
-    sentinel = null;
-    active.value = false;
+  function cancelRetry() {
+    window.clearTimeout(retryTimer);
+    retryTimer = undefined;
   }
 
-  const onVisibility = () => {
-    if (document.visibilityState === 'visible') acquire();
-  };
+  function release() {
+    cancelRetry();
+    const lock = sentinel;
+    sentinel = null;
+    active.value = false;
+    if (lock && !lock.released) void lock.release().catch(error => console.warn('Screen wake lock release failed', error));
+  }
 
-  watch(enabled, (value) => (value ? acquire() : release()));
+  function sync() {
+    cancelRetry();
+    retries = 0;
+    if (canAcquire()) void acquire();
+    else release();
+  }
 
+  function onPageShow() {
+    pageHidden = false;
+    sync();
+  }
+
+  function onPageHide() {
+    pageHidden = true;
+    release();
+  }
+
+  watch(enabled, sync);
   onMounted(() => {
-    document.addEventListener('visibilitychange', onVisibility);
-    // Some browsers only grant the lock after a user gesture.
-    document.addEventListener('pointerdown', acquire);
-    acquire();
+    mounted = true;
+    document.addEventListener('visibilitychange', sync);
+    document.addEventListener('pointerdown', sync);
+    window.addEventListener('pageshow', onPageShow);
+    window.addEventListener('focus', sync);
+    window.addEventListener('pagehide', onPageHide);
+    sync();
   });
 
   onUnmounted(() => {
-    document.removeEventListener('visibilitychange', onVisibility);
-    document.removeEventListener('pointerdown', acquire);
+    mounted = false;
+    document.removeEventListener('visibilitychange', sync);
+    document.removeEventListener('pointerdown', sync);
+    window.removeEventListener('pageshow', onPageShow);
+    window.removeEventListener('focus', sync);
+    window.removeEventListener('pagehide', onPageHide);
     release();
   });
 

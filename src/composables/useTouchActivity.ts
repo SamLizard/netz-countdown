@@ -24,12 +24,14 @@ export function useTouchActivity(): { lastTouchMs: Ref<number>; idle: Ref<boolea
   onMounted(() => {
     document.addEventListener('pointerdown', touch, { capture: true });
     document.addEventListener('visibilitychange', onVisibility);
+    window.addEventListener('pageshow', onVisibility);
     touch();
   });
 
   onUnmounted(() => {
     document.removeEventListener('pointerdown', touch, { capture: true });
     document.removeEventListener('visibilitychange', onVisibility);
+    window.removeEventListener('pageshow', onVisibility);
     window.clearTimeout(timer);
   });
 

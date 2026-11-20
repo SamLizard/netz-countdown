@@ -1,6 +1,7 @@
 import type { CountdownTarget, SleepPhase, ZmanimData } from '@/types';
 import { t } from '@/i18n';
 import { hebrewDateFor, sunriseFor } from './calendarParser';
+import { DEFAULT_FINAL_SECONDS } from './refresh';
 
 /** How long after sunrise the "late" display stays before switching to tomorrow. */
 export const LATE_WINDOW_SECONDS = 2 * 60 * 60;
@@ -8,10 +9,9 @@ export const LATE_WINDOW_SECONDS = 2 * 60 * 60;
 /** Grey "__:__" placeholder while the target is further away than this. */
 export const HIDE_DIGITS_BEFORE_SECONDS = 2 * 60 * 60;
 
-/** Inside the warning window a slow refresh (above SLOW_LIMIT) becomes NEAR_STEP; the last FINAL seconds tick every second. */
+/** Inside the warning window a refresh slower than SLOW_LIMIT becomes NEAR_STEP. */
 export const NEAR_STEP_SECONDS = 5;
 export const SLOW_LIMIT_SECONDS = 10;
-export const FINAL_SECONDS = 20;
 
 /** Auto-sleep: seconds without touch after sunrise before the warning, then length of the warning. */
 export const SLEEP_GRACE_SECONDS = 1;
@@ -72,10 +72,10 @@ export function colorFor(remainingSeconds: number, warningSeconds: number, onBla
  * Refresh step (seconds) for the current moment:
  * - more than the warning window before the target: the user's `farStep`;
  * - inside the warning window: `farStep` if it is 10 s or less, else 5 s;
- * - the last 20 s, after the target, or without a target: every second.
+ * - within the final refresh window, after the target, or without a target: every second.
  */
-export function refreshStepSeconds(remainingSeconds: number | null, warningSeconds: number, farStep: number): number {
-  if (remainingSeconds === null || remainingSeconds <= FINAL_SECONDS) return 1;
+export function refreshStepSeconds(remainingSeconds: number | null, warningSeconds: number, farStep: number, finalSeconds = DEFAULT_FINAL_SECONDS): number {
+  if (remainingSeconds === null || remainingSeconds <= finalSeconds) return 1;
   if (remainingSeconds <= warningSeconds) return farStep > SLOW_LIMIT_SECONDS ? NEAR_STEP_SECONDS : farStep;
   return farStep;
 }
@@ -83,18 +83,18 @@ export function refreshStepSeconds(remainingSeconds: number | null, warningSecon
 /**
  * Delay until the next tick: the first of the next wall-clock step boundary (the "now" clock changes),
  * the next countdown step boundary (the remaining value changes), and the next change of refresh rate
- * (start of the warning window, start of the last 20 s).
+ * (start of the warning window and start of the final refresh window).
  */
-export function nextTickDelay(nowMs: number, targetMs: number | null, warningSeconds: number, farStep: number): number {
+export function nextTickDelay(nowMs: number, targetMs: number | null, warningSeconds: number, farStep: number, finalSeconds = DEFAULT_FINAL_SECONDS): number {
   const remainingMs = targetMs === null ? null : targetMs - nowMs;
-  const stepMs = refreshStepSeconds(remainingMs === null ? null : remainingMs / 1000, warningSeconds, farStep) * 1000;
+  const stepMs = refreshStepSeconds(remainingMs === null ? null : remainingMs / 1000, warningSeconds, farStep, finalSeconds) * 1000;
   let delay = stepMs - (nowMs % stepMs);
   if (remainingMs !== null) {
     const toCountdownBoundary = ((remainingMs % stepMs) + stepMs) % stepMs || stepMs;
     delay = Math.min(delay, toCountdownBoundary);
     // Never sleep past the target itself (with prayer steps: the step change must happen on time).
     if (remainingMs > 0) delay = Math.min(delay, remainingMs);
-    for (const threshold of [warningSeconds, FINAL_SECONDS]) {
+    for (const threshold of [warningSeconds, finalSeconds]) {
       const toThreshold = remainingMs - threshold * 1000;
       if (toThreshold > 0) delay = Math.min(delay, toThreshold);
     }

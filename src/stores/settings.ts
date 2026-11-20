@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia';
 import { ref, watch } from 'vue';
 import { i18n, isLocale, RTL_LOCALES, type LocaleCode } from '@/i18n';
+import { DEFAULT_FINAL_SECONDS, MAX_FINAL_SECONDS, MIN_FINAL_SECONDS } from '@/services/refresh';
 
 const STORAGE_KEY = 'netz.settings.v1';
 
@@ -15,6 +16,7 @@ interface SavedSettings {
   warningMinutes: number;
   hideFarDigits: boolean;
   farRefreshSeconds: number;
+  finalRefreshSeconds: number;
   dimWhenIdle: boolean;
   autoSleep: boolean;
   storageNoticeDismissed: boolean;
@@ -46,14 +48,19 @@ export const useSettingsStore = defineStore('settings', () => {
   const blackBackground = ref(saved.blackBackground ?? true);
   const keepAwake = ref(saved.keepAwake ?? true);
   const warningMinutes = ref(saved.warningMinutes ?? 8);
-  const hideFarDigits = ref(saved.hideFarDigits ?? true);
+  const hideFarDigits = ref(saved.hideFarDigits ?? false);
   const farRefreshSeconds = ref(clampFarRefresh(saved.farRefreshSeconds ?? 60));
-  const dimWhenIdle = ref(saved.dimWhenIdle ?? true);
-  const autoSleep = ref(saved.autoSleep ?? true);
+  const savedFinal = saved.finalRefreshSeconds;
+  const finalRefreshSeconds = ref(
+    typeof savedFinal === 'number' && Number.isInteger(savedFinal) && savedFinal >= MIN_FINAL_SECONDS && savedFinal <= MAX_FINAL_SECONDS
+      ? savedFinal : DEFAULT_FINAL_SECONDS
+  );
+  const dimWhenIdle = ref(saved.dimWhenIdle ?? false);
+  const autoSleep = ref(saved.autoSleep ?? false);
   const storageNoticeDismissed = ref(saved.storageNoticeDismissed ?? false);
 
   watch(
-    [locale, blackBackground, keepAwake, warningMinutes, hideFarDigits, farRefreshSeconds, dimWhenIdle, autoSleep, storageNoticeDismissed],
+    [locale, blackBackground, keepAwake, warningMinutes, hideFarDigits, farRefreshSeconds, finalRefreshSeconds, dimWhenIdle, autoSleep, storageNoticeDismissed],
     () => {
       const value: SavedSettings = {
         locale: locale.value,
@@ -62,6 +69,7 @@ export const useSettingsStore = defineStore('settings', () => {
         warningMinutes: warningMinutes.value,
         hideFarDigits: hideFarDigits.value,
         farRefreshSeconds: farRefreshSeconds.value,
+        finalRefreshSeconds: finalRefreshSeconds.value,
         dimWhenIdle: dimWhenIdle.value,
         autoSleep: autoSleep.value,
         storageNoticeDismissed: storageNoticeDismissed.value
@@ -89,6 +97,7 @@ export const useSettingsStore = defineStore('settings', () => {
     warningMinutes,
     hideFarDigits,
     farRefreshSeconds,
+    finalRefreshSeconds,
     dimWhenIdle,
     autoSleep,
     storageNoticeDismissed

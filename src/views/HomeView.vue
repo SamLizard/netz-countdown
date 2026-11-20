@@ -64,7 +64,7 @@
 
     <SleepOverlay v-if="asleep" @wake="activity.touch" />
 
-    <SettingsDialog v-model="settingsOpen" :wake-lock-supported="wakeLock.supported" />
+    <SettingsDialog v-model="settingsOpen" :now="now" :wake-lock-supported="wakeLock.supported" :wake-lock-active="wakeLock.active.value" />
   </v-main>
 </template>
 
@@ -107,7 +107,8 @@ const hasNotices = computed(() => calendar.hasData && (showStorageNotice.value |
 const now = useNow(() => ({
   targetMs: liveStep.value?.time.getTime() ?? null,
   warningSeconds: liveStep.value?.warningSeconds ?? settings.warningMinutes * 60,
-  farStepSeconds: settings.farRefreshSeconds
+  farStepSeconds: settings.farRefreshSeconds,
+  finalSeconds: settings.finalRefreshSeconds
 }));
 
 const { plan, liveIndex, liveStep, lastStep, sunrise, hebrewDate } = useStepPlan(now);
@@ -129,7 +130,7 @@ const navLabels = computed(() => plan.value.map((s) => s.label ?? t('countdown.t
 
 const liveRemaining = computed(() => (liveStep.value ? (liveStep.value.time.getTime() - now.value.getTime()) / 1000 : null));
 const stepSeconds = computed(() =>
-  refreshStepSeconds(liveRemaining.value, liveStep.value?.warningSeconds ?? 0, settings.farRefreshSeconds)
+  refreshStepSeconds(liveRemaining.value, liveStep.value?.warningSeconds ?? 0, settings.farRefreshSeconds, settings.finalRefreshSeconds)
 );
 
 // Dim after 10 s without touch, except in the last minute before the live step.

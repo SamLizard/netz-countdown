@@ -12,7 +12,7 @@ Live: https://samlizard.github.io/netz-countdown/
 
 The calendar stays on the phone. Nothing is uploaded, and there is no account.
 
-Settings (gear icon): language (English / French / Hebrew), black background (only the number is colored, saves battery on OLED screens), keep the screen on, and how many minutes before sunrise to start turning red.
+Open Settings (gear icon) to manage your calendar and prayer steps, choose a language, and adjust countdown colors. Under **Screen and battery → Advanced refresh settings**, choose when the countdown switches to one-second updates (20 seconds before the current target by default). The countdown stays visible after the last target by default; **Go dark after the last countdown** is optional. Existing saved preferences are preserved.
 
 The landscape countdown fits on one screen without scrolling. The digits use as much of the available width and height as possible, with the clock details below. If you've added prayer steps, use the previous/next buttons or swipe horizontally to preview another step.
 

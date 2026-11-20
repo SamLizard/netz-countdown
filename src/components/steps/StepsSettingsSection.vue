@@ -1,6 +1,6 @@
 <template>
   <div>
-    <div class="text-subtitle-2 mb-1">{{ $t('steps.title') }}</div>
+    <h3 class="text-subtitle-1 font-weight-bold mb-1">{{ $t('steps.title') }}</h3>
     <p class="text-caption text-medium-emphasis mb-2">{{ $t('steps.sectionHint') }}</p>
     <div class="text-body-2 mb-3">
       {{ steps.hasSteps ? $t('steps.summaryCount', steps.count) : $t('steps.summaryNone') }}

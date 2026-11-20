@@ -4,7 +4,7 @@
     :items="otherLocales"
     item-title="text"
     item-value="lang"
-    :aria-label="$t('language')"
+    :aria-label="$t('settings.languageLabel')"
     hide-details
     flat
     density="compact"
@@ -58,5 +58,6 @@ const otherLocales = computed<LocaleItem[]>(() =>
 }
 .language-selection :deep(.v-field__input) {
   padding-inline: 4px;
+  min-block-size: 44px;
 }
 </style>
