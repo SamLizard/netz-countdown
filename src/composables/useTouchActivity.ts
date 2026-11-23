@@ -2,38 +2,47 @@ import { onMounted, onUnmounted, ref, type Ref } from 'vue';
 import { DIM_AFTER_SECONDS } from '@/services/countdown';
 
 /**
- * Last time the user touched the screen (or came back to the app), plus an `idle` flag that turns
- * true DIM_AFTER_SECONDS later. The flag has its own timer, so it is on time even with slow clock ticks.
+ * A foreground return gives auto-sleep a fresh grace period, but only a touch brightens the display.
+ * Dimming has its own timer so it still works with slow countdown ticks.
  */
-export function useTouchActivity(): { lastTouchMs: Ref<number>; idle: Ref<boolean>; touch: () => void } {
-  const lastTouchMs = ref(Date.now());
+export function useTouchActivity(): { lastAwakeMs: Ref<number>; idle: Ref<boolean>; touch: () => void } {
+  const lastAwakeMs = ref(Date.now());
+  let brightenUntil = lastAwakeMs.value + DIM_AFTER_SECONDS * 1000;
   const idle = ref(false);
   let timer: number | undefined;
 
-  function touch() {
-    lastTouchMs.value = Date.now();
-    idle.value = false;
+  function syncIdle() {
     window.clearTimeout(timer);
-    timer = window.setTimeout(() => (idle.value = true), DIM_AFTER_SECONDS * 1000);
+    const remaining = brightenUntil - Date.now();
+    idle.value = remaining <= 0;
+    if (!idle.value) timer = window.setTimeout(syncIdle, remaining);
   }
 
-  const onVisibility = () => {
-    if (document.visibilityState === 'visible') touch();
-  };
+  function touch() {
+    lastAwakeMs.value = Date.now();
+    brightenUntil = lastAwakeMs.value + DIM_AFTER_SECONDS * 1000;
+    syncIdle();
+  }
+
+  function onForeground() {
+    if (document.visibilityState !== 'visible') return;
+    lastAwakeMs.value = Date.now();
+    syncIdle();
+  }
 
   onMounted(() => {
     document.addEventListener('pointerdown', touch, { capture: true });
-    document.addEventListener('visibilitychange', onVisibility);
-    window.addEventListener('pageshow', onVisibility);
+    document.addEventListener('visibilitychange', onForeground);
+    window.addEventListener('pageshow', onForeground);
     touch();
   });
 
   onUnmounted(() => {
     document.removeEventListener('pointerdown', touch, { capture: true });
-    document.removeEventListener('visibilitychange', onVisibility);
-    window.removeEventListener('pageshow', onVisibility);
+    document.removeEventListener('visibilitychange', onForeground);
+    window.removeEventListener('pageshow', onForeground);
     window.clearTimeout(timer);
   });
 
-  return { lastTouchMs, idle, touch };
+  return { lastAwakeMs, idle, touch };
 }

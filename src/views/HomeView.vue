@@ -145,7 +145,7 @@ const sleep = useAutoSleep(
   now,
   computed(() => lastStep.value?.time.getTime() ?? null),
   computed(() => settings.autoSleep && !settingsOpen.value && !noticesOpen.value),
-  activity.lastTouchMs
+  activity.lastAwakeMs
 );
 
 const asleep = computed(() => sleep.phase.value === 'asleep');

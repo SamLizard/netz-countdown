@@ -1,5 +1,8 @@
 import { onMounted, onUnmounted, ref, watch, type Ref } from 'vue';
 
+const REQUEST_TIMEOUT_MS = 2000;
+const MAX_RETRIES = 3;
+
 /**
  * Keeps the screen on while `enabled` is true and the page is visible.
  * iOS releases the lock when the app goes to the background, so it is requested again on return.
@@ -9,34 +12,55 @@ export function useWakeLock(enabled: Ref<boolean>) {
   const active = ref(false);
   let sentinel: WakeLockSentinel | null = null;
   let mounted = false;
-  let pageHidden = false;
-  let pending = false;
+  let generation = 0;
+  let requestTimer: number | undefined;
   let retryTimer: number | undefined;
   let retries = 0;
+  let lostFocus = false;
 
-  const canAcquire = () => mounted && !pageHidden && supported && enabled.value && document.visibilityState === 'visible';
+  const canAcquire = () => mounted && supported && enabled.value && document.visibilityState === 'visible';
 
-  function retry() {
-    if (!canAcquire() || retryTimer !== undefined || retries >= 3) return;
+  function retry(reason: unknown) {
+    if (!canAcquire() || retryTimer !== undefined) return;
+    if (retries >= MAX_RETRIES) {
+      console.warn('Screen wake lock unavailable after retries', reason);
+      return;
+    }
     retryTimer = window.setTimeout(() => {
       retryTimer = undefined;
       void acquire();
     }, 500 * 2 ** retries++);
   }
 
+  function clearRequest() {
+    window.clearTimeout(requestTimer);
+    requestTimer = undefined;
+  }
+
+  function releaseLock(lock: WakeLockSentinel) {
+    if (!lock.released) void lock.release().catch(error => console.warn('Screen wake lock release failed', error));
+  }
+
   async function acquire() {
-    if (!canAcquire() || pending || (sentinel && !sentinel.released)) return;
+    if (!canAcquire() || requestTimer !== undefined || (sentinel && !sentinel.released)) return;
     sentinel = null;
     active.value = false;
-    pending = true;
+    const request = ++generation;
+    // A request interrupted by iOS suspension may never settle.
+    requestTimer = window.setTimeout(() => {
+      generation++;
+      clearRequest();
+      retry('Request timed out');
+    }, REQUEST_TIMEOUT_MS);
     try {
       const lock = await navigator.wakeLock.request('screen');
-      if (!canAcquire()) {
-        await lock.release();
+      if (request !== generation || !canAcquire()) {
+        releaseLock(lock);
         return;
       }
+      clearRequest();
       if (lock.released) {
-        retry();
+        retry('Browser returned a released lock');
         return;
       }
       sentinel = lock;
@@ -45,13 +69,12 @@ export function useWakeLock(enabled: Ref<boolean>) {
         if (sentinel !== lock) return;
         sentinel = null;
         active.value = false;
-        retry();
+        retry('Browser released the lock');
       }, { once: true });
-    } catch {
-      // iOS can reject a request while the app is returning to the foreground.
-      retry();
+    } catch (error) {
+      if (request === generation) retry(error);
     } finally {
-      pending = false;
+      if (request === generation) clearRequest();
     }
   }
 
@@ -61,11 +84,14 @@ export function useWakeLock(enabled: Ref<boolean>) {
   }
 
   function release() {
+    generation++;
+    clearRequest();
     cancelRetry();
+    lostFocus = false;
     const lock = sentinel;
     sentinel = null;
     active.value = false;
-    if (lock && !lock.released) void lock.release().catch(error => console.warn('Screen wake lock release failed', error));
+    if (lock) releaseLock(lock);
   }
 
   function sync() {
@@ -75,14 +101,14 @@ export function useWakeLock(enabled: Ref<boolean>) {
     else release();
   }
 
-  function onPageShow() {
-    pageHidden = false;
-    sync();
+  function onBlur() {
+    lostFocus = true;
   }
 
-  function onPageHide() {
-    pageHidden = true;
-    release();
+  function onFocus() {
+    // A foreground return without a visibility event can leave a stale sentinel.
+    if (lostFocus) release();
+    sync();
   }
 
   watch(enabled, sync);
@@ -90,9 +116,10 @@ export function useWakeLock(enabled: Ref<boolean>) {
     mounted = true;
     document.addEventListener('visibilitychange', sync);
     document.addEventListener('pointerdown', sync);
-    window.addEventListener('pageshow', onPageShow);
-    window.addEventListener('focus', sync);
-    window.addEventListener('pagehide', onPageHide);
+    window.addEventListener('pageshow', sync);
+    window.addEventListener('blur', onBlur);
+    window.addEventListener('focus', onFocus);
+    window.addEventListener('pagehide', release);
     sync();
   });
 
@@ -100,9 +127,10 @@ export function useWakeLock(enabled: Ref<boolean>) {
     mounted = false;
     document.removeEventListener('visibilitychange', sync);
     document.removeEventListener('pointerdown', sync);
-    window.removeEventListener('pageshow', onPageShow);
-    window.removeEventListener('focus', sync);
-    window.removeEventListener('pagehide', onPageHide);
+    window.removeEventListener('pageshow', sync);
+    window.removeEventListener('blur', onBlur);
+    window.removeEventListener('focus', onFocus);
+    window.removeEventListener('pagehide', release);
     release();
   });
 

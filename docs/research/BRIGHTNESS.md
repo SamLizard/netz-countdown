@@ -56,11 +56,11 @@ Implement now, as a setting "Dim after 10 s" (default On in black-background mod
 
 1. After 10 s without a touch, render the number at a lower lightness, e.g. HSL lightness 50% → 20-25% (or opacity
    0.4). Secondary text goes to a darker grey too.
-2. Any `pointerdown` un-dims for 10 s. Reuse the touch tracking in `useAutoSleep.ts` (`lastTouchMs`); put the pure rule
+2. Any `pointerdown` un-dims for 10 s. Track this in `useTouchActivity.ts`, separately from the auto-sleep grace period; put the pure rule
    (`isDimmed(nowMs, lastTouchMs, targetMs, settings)`) in `services/countdown.ts` so it is testable.
 3. Un-dim automatically in the last N seconds before the target (suggest the last 60 s, configurable later), so the
    final count is easy to read. Keep the warning colors; dim them by lightness, not by hue.
-4. On `visibilitychange` to visible, start undimmed (counts as a touch), matching "dims 10 s after opening".
+4. On a fresh launch, start undimmed for 10 s. Returning to an existing app gives auto-sleep a fresh grace period, but keeps the dim state tied to the last touch so the countdown does not flash brighter on resume.
 5. Dim level: one slider or three steps (Light / Medium / Strong). Never below a level readable at minimum brightness.
 
 Document for users (settings tip or README):
